@@ -3,7 +3,10 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useEscrowsMutations } from "@/components/tw-blocks/tanstack/useEscrowsMutations";
-import { ChangeMilestoneStatusPayload } from "@trustless-work/escrow/types";
+import type {
+  ChangeMilestoneStatusPayload,
+  SendTransactionResponse,
+} from "@trustless-work/escrow/types";
 import { toast } from "sonner";
 import {
   ErrorResponse,
@@ -12,22 +15,27 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ChangeMilestoneStatusProps<T = unknown> = {
+export type ChangeMilestoneStatusSuccess = SendTransactionResponse & {
+  customMetadata?: Record<string, unknown>;
+};
+
+type ChangeMilestoneStatusProps = {
   contractId: string;
   milestoneId: string | number;
   newStatus: string;
   walletAddress: string;
-  onSuccess?: (data?: T) => void;
+  onSuccess?: (data: ChangeMilestoneStatusSuccess) => void;
   customMetadata?: Record<string, unknown>;
   confirmationMessage?: string;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
   children?: React.ReactNode;
   evidence?: string;
 };
 
-export const ChangeMilestoneStatus = <T = unknown>({
+export const ChangeMilestoneStatus = ({
   contractId,
   milestoneId,
   newStatus,
@@ -40,7 +48,7 @@ export const ChangeMilestoneStatus = <T = unknown>({
   className,
   children,
   evidence,
-}: ChangeMilestoneStatusProps<T>) => {
+}: ChangeMilestoneStatusProps) => {
   const { changeMilestoneStatus } = useEscrowsMutations();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -65,7 +73,7 @@ export const ChangeMilestoneStatus = <T = unknown>({
         serviceProvider: walletAddress,
       };
 
-      await changeMilestoneStatus.mutateAsync({
+      const response = await changeMilestoneStatus.mutateAsync({
         payload,
         type: "multi-release",
         address: walletAddress,
@@ -74,7 +82,7 @@ export const ChangeMilestoneStatus = <T = unknown>({
       toast.success("Milestone status updated successfully");
 
       if (onSuccess) {
-        onSuccess({ ...payload, customMetadata } as unknown as T);
+        onSuccess({ ...response, customMetadata });
       }
     } catch (error) {
       toast.error(handleError(error as ErrorResponse).message);

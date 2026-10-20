@@ -1,5 +1,5 @@
 import { StateCreator } from "zustand";
-import { AuthenticationGlobalStore } from "../@types/authentication.entity";
+import type { AuthenticationGlobalStore } from "@/types/authentication";
 
 const AUTHENTICATION_ACTIONS = {
   CONNECT_WALLET: "authentication/connect",
@@ -9,7 +9,7 @@ const AUTHENTICATION_ACTIONS = {
 
 export const useGlobalAuthenticationSlice: StateCreator<
   AuthenticationGlobalStore,
-  [["zustand/devtools", never]],
+  [["zustand/devtools", never], ["zustand/persist", unknown]],
   [],
   AuthenticationGlobalStore
 > = (set) => {
@@ -18,10 +18,19 @@ export const useGlobalAuthenticationSlice: StateCreator<
     address: "",
     name: "",
     token: "",
+    walletId: "",
 
     // Modifiers
-    connectWalletStore: async (address: string, name: string) => {
-      set({ address, name }, false, AUTHENTICATION_ACTIONS.CONNECT_WALLET);
+    connectWalletStore: async (
+      address: string,
+      name: string,
+      walletId = "",
+    ) => {
+      set(
+        { address, name, walletId },
+        false,
+        AUTHENTICATION_ACTIONS.CONNECT_WALLET,
+      );
     },
 
     setToken: (token: string) => {
@@ -30,14 +39,14 @@ export const useGlobalAuthenticationSlice: StateCreator<
 
     disconnectWalletStore: () =>
       set(
-        { address: "", name: "", token: "" },
+        { address: "", name: "", walletId: "" },
         false,
         AUTHENTICATION_ACTIONS.DISCONNECT_WALLET,
       ),
 
     clearAuth: () =>
       set(
-        { address: "", name: "", token: "" },
+        { address: "", name: "", walletId: "", token: "" },
         false,
         AUTHENTICATION_ACTIONS.DISCONNECT_WALLET,
       ),

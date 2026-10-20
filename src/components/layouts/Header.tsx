@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { SearchHeader } from "@/components/layouts/SearchHeader";
+import { useWallet } from "@/hooks/useWallet";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface HeaderProps {
@@ -17,11 +18,14 @@ interface HeaderProps {
 
 export const Header = ({ onMenuClick }: HeaderProps) => {
   const router = useRouter();
+  const { address: connectedAddress } = useWallet();
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setDisplayName(user?.displayName ?? null);
+      setSignedIn(user !== null);
     });
     return () => unsubscribe();
   }, []);
@@ -46,12 +50,16 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
                 size="icon"
                 className="md:hidden"
                 onClick={onMenuClick}
+                aria-label="Toggle navigation menu"
               >
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
 
-              <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2">
+              <Link
+                href="/"
+                className="flex min-w-0 shrink-0 items-center gap-2"
+              >
                 <Image
                   src="/img/logo.png"
                   alt="SafeTrust Logo"
@@ -67,12 +75,32 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             </div>
 
             <div className="min-w-0 flex-1 max-w-2xl">
-              <SearchHeader />
+              <div className="hidden sm:block">
+                <SearchHeader />
+              </div>
+              <Link
+                href="/rent"
+                aria-label="Browse rental properties"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-muted sm:hidden"
+              >
+                <Search aria-hidden="true" className="h-5 w-5" />
+              </Link>
             </div>
 
-            {/* Right: bell | name | avatar — matching Figma order */}
-            <div className="flex items-center gap-3 shrink-0">
-              <ThemeToggle />
+            {/* Right: dashboard | bell | name | avatar — matching Figma order */}
+            <div className="flex items-center gap-1 shrink-0 sm:gap-3">
+              <div className="[&_svg]:hidden sm:[&_svg]:block">
+                <ThemeToggle />
+              </div>
+
+              {signedIn ? (
+                <Link
+                  href="/dashboard"
+                  className="hidden rounded-full px-2 py-1 text-sm font-medium text-gray-700 md:inline-flex transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Dashboard
+                </Link>
+              ) : null}
 
               <button
                 type="button"
@@ -91,9 +119,19 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
               >
                 <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-200">
                   {displayName ?? "Account"}
+                  {connectedAddress && (
+                    <span
+                      data-testid="header-wallet-address"
+                      title={connectedAddress}
+                      className="block text-xs font-mono text-muted-foreground"
+                    >
+                      {connectedAddress.slice(0, 6)}…
+                      {connectedAddress.slice(-4)}
+                    </span>
+                  )}
                 </span>
-                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
+                <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-950/60 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-semibold text-orange-800 dark:text-orange-200">
                     {initials}
                   </span>
                 </div>
@@ -109,4 +147,3 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
 };
 
 export default Header;
-

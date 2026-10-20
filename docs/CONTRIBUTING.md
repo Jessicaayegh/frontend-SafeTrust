@@ -4,6 +4,8 @@
 
 `frontend-SafeTrust` is the **UI skeleton** for SafeTrust. It runs entirely with mock/stub data — no Docker, no Hasura, no Firebase session required to develop UI components. The real data integration lives in [dApp-SafeTrust](https://github.com/safetrustcr/dApp-SafeTrust).
 
+Before adding or moving code, review the [Architecture Contract](ARCHITECTURE.md) for directory layers, allowed/forbidden imports, and architectural decision rules.
+
 ## Quick start
 
 ```bash
@@ -24,11 +26,11 @@ If you need data that doesn't exist in mock data yet, add it to the appropriate 
 
 ## Mock data files
 
-| File | Exports | Description |
-|---|---|---|
-| `src/lib/mockData/apartments.ts` | `MOCK_APARTMENTS` | Apartment listings |
-| `src/lib/mockData/hotels.ts` | `STUB_HOTELS` | Hotel listings for `/rent` |
-| `src/lib/mockData/messages.ts` | `MOCK_CONVERSATIONS`, `MOCK_MESSAGES` | Conversation & message data |
+| File                             | Exports                               | Description                 |
+| -------------------------------- | ------------------------------------- | --------------------------- |
+| `src/lib/mockData/apartments.ts` | `MOCK_APARTMENTS`                     | Apartment listings          |
+| `src/lib/mockData/hotels.ts`     | `STUB_HOTELS`                         | Hotel listings for `/rent`  |
+| `src/lib/mockData/messages.ts`   | `MOCK_CONVERSATIONS`, `MOCK_MESSAGES` | Conversation & message data |
 
 ## Hook abstraction pattern
 
@@ -83,11 +85,15 @@ Legacy `/dashboard/hotel/*` URLs redirect via `next.config.ts`.
 Escrows → Escrow Dashboard → Suggestions view → Rent →
 Hotels → New Hotel → Notifications → Messages →
 Favorite → Users → My apartments → New Apartment →
-Interested People → [Logout]
+Profile → [Logout]
 ```
+
+New routes are added only in `src/components/layouts/nav-items.ts`.
 
 ## PR checklist
 
+- [ ] Complies with the layer import boundaries in [Architecture Contract](ARCHITECTURE.md)
+- [ ] Check narrow and wide viewports for horizontal overflow
 - [ ] No Apollo Client, Firebase Auth calls, or Hasura queries/imports added
 - [ ] New data uses `src/lib/mockData/` files
 - [ ] Component works in both light and dark mode

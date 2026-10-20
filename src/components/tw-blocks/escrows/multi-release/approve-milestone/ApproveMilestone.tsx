@@ -4,7 +4,10 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useEscrowsMutations } from "@/components/tw-blocks/tanstack/useEscrowsMutations";
 import { useWalletContext } from "@/components/tw-blocks/wallet-kit/WalletProvider";
-import { ApproveMilestonePayload } from "@trustless-work/escrow/types";
+import type {
+  ApproveMilestonePayload,
+  SendTransactionResponse,
+} from "@trustless-work/escrow/types";
 import { toast } from "sonner";
 import {
   ErrorResponse,
@@ -13,20 +16,25 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ApproveMilestoneProps<T = unknown> = {
+export type ApproveMilestoneSuccess = SendTransactionResponse & {
+  customMetadata?: Record<string, unknown>;
+};
+
+type ApproveMilestoneProps = {
   contractId: string;
   milestoneId: string | number;
   approverWallet: string;
-  onSuccess?: (data?: T) => void;
+  onSuccess?: (data: ApproveMilestoneSuccess) => void;
   customMetadata?: Record<string, unknown>;
   confirmationMessage?: string;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
   children?: React.ReactNode;
 };
 
-export const ApproveMilestone = <T = unknown>({
+export const ApproveMilestone = ({
   contractId,
   milestoneId,
   approverWallet,
@@ -37,7 +45,7 @@ export const ApproveMilestone = <T = unknown>({
   size = "default",
   className,
   children,
-}: ApproveMilestoneProps<T>) => {
+}: ApproveMilestoneProps) => {
   const { approveMilestone } = useEscrowsMutations();
   const { walletAddress } = useWalletContext();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -56,7 +64,7 @@ export const ApproveMilestone = <T = unknown>({
         approver: approverWallet || walletAddress || "",
       };
 
-      await approveMilestone.mutateAsync({
+      const response = await approveMilestone.mutateAsync({
         payload,
         type: "multi-release",
         address: approverWallet || walletAddress || "",
@@ -65,7 +73,7 @@ export const ApproveMilestone = <T = unknown>({
       toast.success("Milestone approved successfully");
 
       if (onSuccess) {
-        onSuccess({ ...payload, customMetadata } as unknown as T);
+        onSuccess({ ...response, customMetadata });
       }
     } catch (error) {
       toast.error(handleError(error as ErrorResponse).message);

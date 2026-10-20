@@ -4,60 +4,30 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, MapPin, Bed, PawPrint, Bath, MessageCircle } from "lucide-react";
+import {
+  Heart,
+  MapPin,
+  Bed,
+  PawPrint,
+  Bath,
+  MessageCircle,
+  LayoutDashboard,
+  ArrowLeft,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import HotelHeader from "@/components/listings/HotelHeader";
-import { getConversationIdForApartment } from "@/lib/mockData/messages";
-
-// TODO: replace with Apollo query → public.apartments (Hasura)
-// Reference: dApp/apps/frontend/src/app/dashboard/guest/page.tsx
-const STUB_APARTMENTS = [
-  {
-    id: "1",
-    name: "Moderno Apartamento en San José Centro",
-    address: "Avenida Central, Centro, San José",
-    price: 1200,
-    deposit: 2400,
-    beds: 2,
-    baths: 1,
-    petFriendly: true,
-    isPromoted: true,
-    description:
-      "Apartamento renovado con acabados de lujo, 2 habitaciones, 2 baños",
-    images: [
-      "/img/room1.png",
-      "/img/room2.png",
-      "/img/room3.png",
-      "/img/room4.png",
-    ],
-  },
-  {
-    id: "2",
-    name: "Suite Ejecutiva Sabana Norte",
-    address: "Calle 42, Sabana Norte, San José",
-    price: 950,
-    deposit: 1900,
-    beds: 2,
-    baths: 1,
-    petFriendly: true,
-    isPromoted: false,
-    description:
-      "Suite ejecutiva completamente amueblada con vista panorámica de la ciudad.",
-    images: [
-      "/img/room2.png",
-      "/img/room1.png",
-      "/img/room3.png",
-      "/img/room4.png",
-    ],
-  },
-];
+import { PageContainer } from "@/components/layouts/PageContainer";
+import { getConversationIdForApartment } from "@/lib/conversationRoutes";
+import { APARTMENT_LISTINGS } from "@/lib/mockData/apartmentListings";
+import { ListingLocation } from "@/features/listings/detail/ListingLocation";
 
 export default function GuestSuggestionsPage() {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState(STUB_APARTMENTS[0].id);
+  const [selectedId, setSelectedId] = useState(APARTMENT_LISTINGS[0].id);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  const selected = STUB_APARTMENTS.find((a) => a.id === selectedId)!;
+  const selected = APARTMENT_LISTINGS.find((a) => a.id === selectedId)!;
   const selectedConversationId = getConversationIdForApartment(selected.name);
 
   const toggleFavorite = (id: string) => {
@@ -67,264 +37,367 @@ export default function GuestSuggestionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900
-                    text-gray-900 dark:text-white">
+    <div
+      className="min-h-screen bg-white dark:bg-slate-900
+                    text-gray-900 dark:text-white"
+    >
       {/* Standalone header */}
-      <HotelHeader showHostSwitch />
+      <HotelHeader />
 
-      <div className="mx-auto max-w-[1280px] px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_220px] gap-6">
-
+      <PageContainer width="wide" className="py-6">
+        <nav
+          aria-label="Listing views"
+          className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:justify-between"
+        >
+          <Button
+            asChild
+            variant="outline"
+            className="min-h-11 h-auto whitespace-normal text-center gap-2 px-3 py-2 text-xs sm:text-sm"
+          >
+            <Link href="/rent">
+              <ArrowLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
+              Browse rentals
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="min-h-11 h-auto whitespace-normal text-center gap-2 px-3 py-2 text-xs sm:text-sm"
+          >
+            <Link href="/dashboard/escrow-dashboard">
+              <LayoutDashboard
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0"
+              />
+              Switch to host view
+            </Link>
+          </Button>
+        </nav>
+        <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[240px_minmax(0,1fr)_260px] lg:gap-6 xl:grid-cols-[280px_minmax(0,1fr)_260px]">
           {/* ── Left: Suggestions sidebar ── */}
-          <aside className="space-y-4">
+          <aside className="min-w-0 space-y-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                 Suggestions
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {STUB_APARTMENTS.length} units available
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {APARTMENT_LISTINGS.length} units available
               </p>
               <Link
                 href="/rent"
-                className="text-sm text-orange-500 hover:text-orange-600
-                           font-medium"
+                className="text-sm text-orange-700 hover:text-orange-800
+                           font-medium underline hover:no-underline"
               >
                 Browse all →
               </Link>
             </div>
 
-            <div className="space-y-3">
-              {STUB_APARTMENTS.map((apt) => (
-                <div
+            <ul
+              aria-label="Suggested stays"
+              className="m-0 flex list-none gap-3 overflow-x-auto p-0 pb-2 lg:block lg:max-h-[75dvh] lg:space-y-3 lg:overflow-y-auto lg:pr-1"
+            >
+              {APARTMENT_LISTINGS.map((apt) => (
+                <li
                   key={apt.id}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
-                      e.preventDefault();
-                      setSelectedId(apt.id);
-                    }
-                  }}
-                  onClick={() => setSelectedId(apt.id)}
                   className={cn(
-                    "w-full text-left rounded-xl border p-3 cursor-pointer",
-                    "flex items-start gap-3 transition-colors",
+                    "relative flex w-72 shrink-0 items-start gap-2 rounded-xl border p-3 transition-colors lg:w-full",
                     selectedId === apt.id
                       ? "border-orange-400 bg-orange-50 dark:bg-orange-900/10"
                       : "border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800",
                   )}
                 >
-                  {/* Thumbnail */}
-                  <div className="relative w-16 h-16 rounded-lg
-                                  overflow-hidden shrink-0 bg-gray-200
-                                  dark:bg-slate-700">
-                    <Image
-                      src={apt.images[0]}
-                      alt={apt.name}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0 space-y-0.5">
-                    <div className="flex items-start justify-between gap-1">
-                      <p className="text-sm font-semibold
-                                    text-gray-900 dark:text-white
-                                    line-clamp-2 leading-tight">
-                        {apt.name}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(apt.id);
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        typeof window.matchMedia === "function" &&
+                        window.matchMedia("(max-width: 1023px)").matches
+                      ) {
+                        router.push(`/rent/${apt.id}`);
+                      } else {
+                        setSelectedId(apt.id);
+                      }
+                    }}
+                    aria-pressed={selectedId === apt.id}
+                    aria-label={`Select ${apt.name}`}
+                    className="flex min-w-0 flex-1 items-start gap-2 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  >
+                    {/* Thumbnail */}
+                    <div
+                      className="relative w-16 h-16 rounded-lg
+                                    overflow-hidden shrink-0 bg-gray-200
+                                    dark:bg-slate-700"
+                    >
+                      <Image
+                        src={apt.images[0]}
+                        alt={apt.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
                         }}
-                        className="shrink-0 mt-0.5"
-                      >
-                        <Heart
-                          className={cn(
-                            "h-4 w-4 transition-colors",
-                            favorites.includes(apt.id)
-                              ? "fill-red-500 text-red-500"
-                              : "text-gray-300 hover:text-red-400",
-                          )}
-                        />
-                      </button>
+                      />
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400
-                                  truncate">
-                      {apt.address}
-                    </p>
-                    <div className="flex items-center gap-2
-                                    text-xs text-gray-400 dark:text-gray-500">
-                      <span>{apt.beds}bd</span>
-                      <span>·</span>
-                      {apt.petFriendly && (
-                        <>
-                          <span>pet friendly</span>
-                          <span>·</span>
-                        </>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 space-y-0.5">
+                      <div className="flex items-start justify-between gap-1">
+                        <p
+                          className="text-sm font-semibold
+                                      text-gray-900 dark:text-white
+                                      line-clamp-2 leading-tight"
+                        >
+                          {apt.name}
+                        </p>
+                      </div>
+                      <p
+                        className="text-xs text-gray-600 dark:text-gray-400
+                                    truncate"
+                      >
+                        {apt.address}
+                      </p>
+                      <div
+                        className="flex flex-wrap items-center gap-x-2 gap-y-1
+                                      text-xs text-gray-600 dark:text-gray-400"
+                      >
+                        <span>{apt.bedrooms}bd</span>
+                        <span>·</span>
+                        {apt.petFriendly && (
+                          <>
+                            <span>pet friendly</span>
+                            <span>·</span>
+                          </>
+                        )}
+                        <span>{apt.bathrooms} ba</span>
+                        <span
+                          className="ml-auto font-bold text-green-700
+                                     dark:text-green-400"
+                        >
+                          ${apt.price.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(apt.id)}
+                    aria-pressed={favorites.includes(apt.id)}
+                    aria-label="Toggle favorite"
+                    className="relative z-10 shrink-0 rounded-full p-1 focus-visible:ring-2 focus-visible:ring-orange-500 mt-0.5"
+                  >
+                    <Heart
+                      aria-hidden="true"
+                      className={cn(
+                        "h-4 w-4 transition-colors",
+                        favorites.includes(apt.id)
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-300 hover:text-red-400",
                       )}
-                      <span>{apt.baths} ba</span>
-                      <span
-                        className="ml-auto font-bold text-green-600
-                                   dark:text-green-400"
-                      >
-                        ${apt.price.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                    />
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           </aside>
 
           {/* ── Center: Main image + details ── */}
-          <main className="space-y-4">
+          <main className="min-w-0 space-y-4">
             {/* Main image */}
-            <div className="relative w-full rounded-2xl overflow-hidden
-                            bg-gray-200 dark:bg-slate-700"
-                 style={{ height: "340px" }}>
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-200 dark:bg-slate-700 sm:aspect-[16/10]">
               <Image
                 src={selected.images[0]}
                 alt={selected.name}
                 fill
                 className="object-cover"
-                sizes="(max-width: 1280px) 60vw, 700px"
+                sizes="(max-width: 767px) 100vw, (max-width: 1279px) 65vw, 700px"
                 priority
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = "none";
                 }}
               />
-              {selected.isPromoted && (
-                <span className="absolute bottom-3 left-3
-                                 bg-orange-500 text-white text-xs
-                                 px-2.5 py-1 rounded-full font-semibold
-                                 flex items-center gap-1 shadow-md">
-                  🔥 PROMOTED
+              {selected.promoted && (
+                <span
+                  className="absolute bottom-4 left-4 inline-flex
+                                 items-center gap-1 rounded-lg
+                                 bg-orange-700 px-3 py-1.5 text-xs font-semibold
+                                 text-white shadow-md"
+                >
+                  Promoted
                 </span>
               )}
             </div>
 
-            {/* Apartment details */}
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <h1 className="text-2xl font-bold text-gray-900
-                               dark:text-white leading-tight">
+            <div
+              role="group"
+              aria-label="More photos"
+              className="flex gap-2 overflow-x-auto lg:hidden"
+            >
+              {selected.images.slice(1).map((image, index) => (
+                <div
+                  key={image}
+                  className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-gray-200"
+                >
+                  <Image
+                    src={image}
+                    alt={`${selected.name} photo ${index + 2}`}
+                    fill
+                    sizes="112px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Title & price */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                   {selected.name}
                 </h1>
-                <div className="text-right shrink-0">
-                  <p className="text-xl font-bold text-orange-500">
-                    ${selected.price.toLocaleString()}.00
-                    <span className="text-sm font-normal
-                                     text-gray-500 dark:text-gray-400 ml-1">
-                      Per month
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Deposit: ${selected.deposit.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5
-                              text-sm text-gray-500 dark:text-gray-400">
-                <MapPin className="h-4 w-4 text-orange-500 shrink-0" />
-                {selected.address}
-              </div>
-
-              <div className="flex items-center gap-4
-                              text-sm text-gray-500 dark:text-gray-400">
-                <span className="flex items-center gap-1.5">
-                  <Bed className="h-4 w-4 text-orange-500" />
-                  {selected.beds} bd
-                </span>
-                {selected.petFriendly && (
-                  <span className="flex items-center gap-1.5">
-                    <PawPrint className="h-4 w-4 text-orange-500" />
-                    pet friendly
-                  </span>
-                )}
-                <span className="flex items-center gap-1.5">
-                  <Bath className="h-4 w-4 text-orange-500" />
-                  {selected.baths} ba
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-semibold
-                               text-gray-900 dark:text-white">
-                  Apartment details
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400
-                               leading-relaxed">
-                  {selected.description}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => {
-                    router.push(`/rent/${selected.id}/escrow/create`);
-                  }}
-                  className="rounded-xl bg-orange-500 hover:bg-orange-600
-                             active:bg-orange-700 text-white font-bold
-                             uppercase tracking-wide px-8 py-3
-                             transition-colors duration-200 shadow-md"
+                <p
+                  className="flex items-center gap-1 text-sm text-gray-600
+                              dark:text-gray-400 mt-1"
                 >
-                  Book
-                </button>
-                {selectedConversationId && (
-                  <button
-                    onClick={() => {
-                      router.push(`/dashboard/messages/${selectedConversationId}`);
-                    }}
-                    className="rounded-xl border border-orange-500
-                               text-orange-500 hover:bg-orange-50
-                               dark:hover:bg-orange-900/10 font-semibold
-                               uppercase tracking-wide px-6 py-3
-                               transition-colors duration-200
-                               inline-flex items-center gap-2"
-                  >
-                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                    Message host
-                  </button>
-                )}
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  {selected.address}
+                </p>
               </div>
+              <div className="shrink-0 sm:text-right">
+                <span
+                  className="text-2xl font-bold text-green-700
+                                 dark:text-green-400"
+                >
+                  ${selected.price.toLocaleString()}
+                </span>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Per month
+                </p>
+              </div>
+            </div>
+
+            {/* Badges / specs */}
+            <div
+              className="flex flex-wrap items-center gap-4 py-3
+                            border-y border-gray-200 dark:border-slate-800
+                            text-sm text-gray-600 dark:text-gray-300"
+            >
+              <span className="flex items-center gap-1.5">
+                <Bed className="h-4 w-4 text-orange-700" />
+                {selected.bedrooms} Bedrooms
+              </span>
+              <span>·</span>
+              <span className="flex items-center gap-1.5">
+                <Bath className="h-4 w-4 text-orange-700" />
+                {selected.bathrooms} Bathrooms
+              </span>
+              <span>·</span>
+              <span className="flex items-center gap-1.5">
+                <PawPrint className="h-4 w-4 text-orange-700" />
+                {selected.petFriendly ? "Pet friendly" : "No pets"}
+              </span>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                About this place
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                {selected.description}
+              </p>
+            </div>
+
+            {/* Where you'll stay map section */}
+            <div className="border-t border-gray-200 dark:border-slate-800 pt-4">
+              <ListingLocation listing={selected} />
             </div>
           </main>
 
-          {/* ── Right: Thumbnail stack ── */}
-          <div className="hidden lg:flex flex-col gap-3">
-            {selected.images.slice(1, 4).map((src, i) => (
-              <div
-                key={i}
-                className="relative w-full rounded-xl overflow-hidden
-                           bg-gray-200 dark:bg-slate-700"
-                style={{ height: "120px" }}
-              >
-                <Image
-                  src={src}
-                  alt={`${selected.name} photo ${i + 2}`}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform
-                             duration-300 cursor-pointer"
-                  sizes="220px"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+          {/* ── Right: Booking / Escrow Box ── */}
+          <aside className="min-w-0 space-y-4">
+            <div
+              className="rounded-2xl border border-gray-200
+                            dark:border-slate-800 bg-white dark:bg-slate-800
+                            p-4 shadow-sm space-y-4 sm:p-5 xl:sticky xl:top-6"
+            >
+              <div>
+                <span
+                  className="text-2xl font-bold text-gray-900
+                                 dark:text-white"
+                >
+                  ${selected.price.toLocaleString()}
+                </span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {" "}
+                  / month
+                </span>
               </div>
-            ))}
-          </div>
 
+              <div
+                className="space-y-2 text-xs text-gray-600
+                              dark:text-gray-400 pb-2 border-b
+                              border-gray-100 dark:border-slate-700"
+              >
+                <div className="flex justify-between">
+                  <span>Security deposit</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    ${(selected.price * 2).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Smart escrow protection</span>
+                  <span className="font-medium text-green-700 dark:text-green-400">
+                    Included
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(`/rent/${selected.id}/escrow/create`)
+                }
+                className="w-full rounded-xl bg-orange-700 py-3 text-center
+                           text-sm font-semibold text-white shadow-lg
+                           shadow-orange-500/20 hover:bg-orange-800
+                           transition-colors"
+              >
+                Book with Escrow
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push(`/rent/${selected.id}`)}
+                className="w-full rounded-xl border border-gray-200
+                           dark:border-slate-700 py-2.5 text-center text-sm
+                           font-medium text-gray-700 dark:text-gray-200
+                           hover:bg-gray-50 dark:hover:bg-slate-700/50
+                           transition-colors"
+              >
+                View full details
+              </button>
+
+              {selectedConversationId && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(`/dashboard/messages/${selectedConversationId}`)
+                  }
+                  className="flex w-full items-center justify-center gap-2
+                             rounded-xl border border-orange-700 py-2.5 text-sm
+                             font-semibold text-orange-700 hover:bg-orange-50
+                             dark:hover:bg-orange-950/20 transition-colors"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Message host
+                </button>
+              )}
+            </div>
+          </aside>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

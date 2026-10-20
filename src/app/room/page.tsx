@@ -17,24 +17,31 @@ import {
   PolicyCard,
 } from "@/components/rooms";
 import { useRouter } from "next/navigation";
+import { parseISO } from "date-fns";
 import { NavigationHeader } from "@/components/navigation/NavigationHeader";
+import { PageContainer } from "@/components/layouts/PageContainer";
+import { PageHeader } from "@/components/layouts/PageHeader";
+import { getApartmentById } from "@/lib/mockData/apartmentListings";
+import { EscrowProviders } from "@/providers/EscrowProviders";
+import type { BookingDetails } from "@/features/escrow/booking-escrow.machine";
 
-const additionalImages = [
-  "/img/room1.png",
-  "/img/room2.png",
-  "/img/hotel/hotel1.jpg",
-];
+const roomListing = getApartmentById("1");
+const additionalImages = roomListing.images.slice(1);
+
+// Static demo room: no dynamic hotel id is available on /room yet.
+// Keep the id explicit here so the booking link does not silently drift.
+const hotelId = "1";
+const listing = getApartmentById(hotelId);
+// Nightly rate for the demo room (kept small for testnet walkthroughs).
+const NIGHTLY_RATE = 2;
 
 const breadcrumbs = [
   { label: "Search", href: "/dashboard/search" },
-  { label: "Shikara Hotel", isCurrentPage: true },
+  { label: listing.name, isCurrentPage: true },
 ];
 
 export default function RoomPage() {
   const router = useRouter();
-  // Static demo room: no dynamic hotel id is available on /room yet.
-  // Keep the id explicit here so the booking link does not silently drift.
-  const hotelId = "1";
   const [isLoading] = useState(false);
   const [mobileBookingOpen, setMobileBookingOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -80,15 +87,16 @@ export default function RoomPage() {
     console.log("Booking process started");
   };
 
-  const handleBookingComplete = (bookingId: string) => {
-    console.log("Booking completed:", bookingId);
-
+  const handleBookingComplete = (
+    bookingId: string,
+    booking: BookingDetails,
+  ) => {
     setBookingData({
       bookingId,
-      checkIn: new Date(),
-      checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      guestCount: 1,
-      totalPrice: 120.54,
+      checkIn: parseISO(booking.checkIn),
+      checkOut: parseISO(booking.checkOut),
+      guestCount: booking.price.guests,
+      totalPrice: booking.price.total,
     });
   };
 
@@ -103,7 +111,7 @@ export default function RoomPage() {
   };
 
   return (
-    <div className="container mx-auto pb-8 max-w-7xl min-h-screen bg-background">
+    <PageContainer className="min-h-screen bg-background pb-8">
       {/* Navigation/Page Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <NavigationHeader
@@ -113,15 +121,13 @@ export default function RoomPage() {
       </div>
 
       {/* Main content */}
-      <h1 className="px-4 md:px-6 text-2xl font-bold my-4 lg:mb-6">
-        Room Gallery
-      </h1>
+      <PageHeader title="Room Gallery" />
 
       {/* 1. Photo Gallery Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
         {/* Main Room Photos */}
         <div className="lg:col-span-8 space-y-6 px-2 md:px-6">
-          <RoomPhotos />
+          <RoomPhotos images={roomListing.images} />
         </div>
 
         {/* Additional Hotel Images */}
@@ -135,7 +141,7 @@ export default function RoomPage() {
         {/* Main content - Room Details */}
         <div className="xl:col-span-2 space-y-8">
           {/* Room Basic Details */}
-          <RoomDetailsCard isLoading={isLoading} />
+          <RoomDetailsCard hotelName={listing.name} isLoading={isLoading} />
           {/* Action Bar */}
           <RoomActionBar
             isLiked={isLiked}
@@ -147,9 +153,18 @@ export default function RoomPage() {
           {/* Amenities */}
           <AmenitiesCard isLoading={isLoading} />
           {/* Location */}
-          <LocationCard isLoading={isLoading} />
+          <LocationCard
+            address={roomListing.address}
+            city={roomListing.location}
+            coordinates={roomListing.coordinates}
+            isLoading={isLoading}
+          />
           {/* Host Information */}
-          <HostCard isLoading={isLoading} />
+          <HostCard
+            hostName={roomListing.owner.name}
+            hostAvatar={roomListing.owner.avatar}
+            isLoading={isLoading}
+          />
           {/* Policies and Rules */}
           <PolicyCard isLoading={isLoading} />
         </div>
@@ -161,7 +176,7 @@ export default function RoomPage() {
               {bookingData ? (
                 <BookingConfirmation
                   bookingId={bookingData.bookingId}
-                  hotelName="Shikara Hotel"
+                  hotelName={listing.name}
                   hotelId={hotelId}
                   checkIn={bookingData.checkIn}
                   checkOut={bookingData.checkOut}
@@ -170,13 +185,16 @@ export default function RoomPage() {
                   onViewBooking={handleViewBooking}
                 />
               ) : (
-                <RoomBookingCard
-                  roomId="room_001"
-                  basePrice={2}
-                  onBookingStart={handleBookingStart}
-                  onBookingComplete={handleBookingComplete}
-                  onBookingError={handleBookingError}
-                />
+                <EscrowProviders>
+                  <RoomBookingCard
+                    roomId="room_001"
+                    listing={listing}
+                    basePrice={NIGHTLY_RATE}
+                    onBookingStart={handleBookingStart}
+                    onBookingComplete={handleBookingComplete}
+                    onBookingError={handleBookingError}
+                  />
+                </EscrowProviders>
               )}
             </div>
           </div>
@@ -194,6 +212,6 @@ export default function RoomPage() {
         isOpen={mobileBookingOpen}
         onClose={() => setMobileBookingOpen(false)}
       />
-    </div>
+    </PageContainer>
   );
 }
