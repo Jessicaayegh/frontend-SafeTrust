@@ -16,10 +16,12 @@ export function generateStaticParams() {
 
 export default async function RentalDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { id } = await params;
+  const [{ id }, search] = await Promise.all([params, searchParams]);
   const apartment = APARTMENT_LISTINGS.find((listing) => listing.id === id);
 
   // Unknown ids must 404, not silently show another listing.
@@ -27,5 +29,20 @@ export default async function RentalDetailPage({
 
   const suggestions = getSuggestedApartments(apartment.id);
 
-  return <RentalDetail apartment={apartment} suggestions={suggestions} />;
+  const listingSearchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(search)) {
+    if (Array.isArray(value)) {
+      for (const item of value) listingSearchParams.append(key, item);
+    } else if (value !== undefined) {
+      listingSearchParams.append(key, value);
+    }
+  }
+
+  return (
+    <RentalDetail
+      apartment={apartment}
+      suggestions={suggestions}
+      listingSearchParams={listingSearchParams.toString()}
+    />
+  );
 }
