@@ -21,6 +21,7 @@ import { PageContainer } from "@/components/layouts/PageContainer";
 import { getConversationIdForApartment } from "@/lib/conversationRoutes";
 import { APARTMENT_LISTINGS } from "@/lib/mockData/apartmentListings";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ListingLocation } from "@/features/listings/detail/ListingLocation";
 import { useListingResults } from "@/features/listings/search/useListingResults";
 import { listingHref } from "@/features/listings/search/links";
 
@@ -345,6 +346,9 @@ function GuestSuggestionsContent() {
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                     {selected.description}
                   </p>
+                </div>
+                <div className="border-t border-gray-200 pt-4 dark:border-slate-800">
+                  <ListingLocation listing={selected} />
                 </div>
               </main>
 

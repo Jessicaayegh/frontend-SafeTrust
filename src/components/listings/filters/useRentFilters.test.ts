@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
+import { addDays, localToday } from "@/features/listings";
 import { resolveSortOption, useRentFilters } from "./useRentFilters";
 
 const mockRouterReplace = jest.fn();
@@ -48,7 +49,7 @@ describe("useRentFilters", () => {
     act(() => result.current.setFilters({ location: "San José" }));
 
     expect(mockRouterReplace).toHaveBeenLastCalledWith(
-      "/rent?q=nispero&adults=2&checkIn=2030-01-10&checkOut=2030-01-12&selected=2&view=map&location=San+Jos%C3%A9",
+      "/rent?selected=2&view=map&location=San+Jos%C3%A9&q=nispero&adults=2&checkIn=2030-01-10&checkOut=2030-01-12",
       { scroll: false },
     );
   });
@@ -123,5 +124,75 @@ describe("useRentFilters", () => {
       "/rent?q=nispero&adults=2&checkIn=2030-01-10&checkOut=2030-01-12&selected=2&view=map",
       { scroll: false },
     );
+  });
+
+  it("keeps valid stay-search keys when a price filter changes", () => {
+    const today = localToday();
+    const checkIn = addDays(today, 30);
+    const checkOut = addDays(today, 35);
+    mockSearchParams = `q=escalante&adults=2&checkIn=${checkIn}&checkOut=${checkOut}`;
+    const { result } = renderHook(() => useRentFilters());
+
+    act(() => result.current.setFilters({ minPrice: 50_000 }));
+
+    expect(mockRouterReplace).toHaveBeenLastCalledWith(
+      `/rent?min=50000&q=escalante&adults=2&checkIn=${checkIn}&checkOut=${checkOut}`,
+      { scroll: false },
+    );
+  });
+
+  it("keeps valid stay-search keys when a category is toggled", () => {
+    mockSearchParams = "q=tamarindo&adults=2&location=Heredia";
+    const { result } = renderHook(() => useRentFilters());
+
+    act(() =>
+      result.current.setFilters((current) => ({
+        categories: [...current.categories, "Family"],
+      })),
+    );
+
+    expect(mockRouterReplace).toHaveBeenLastCalledWith(
+      "/rent?categories=Family&location=Heredia&q=tamarindo&adults=2",
+      { scroll: false },
+    );
+  });
+
+  it("normalizes away invalid stay-search keys during a filter change", () => {
+    mockSearchParams = "adults=0&children=2&q=%20%20&bedrooms=2";
+    const { result } = renderHook(() => useRentFilters());
+
+    act(() => result.current.setFilters({ sort: "price-low" }));
+
+    expect(mockRouterReplace).toHaveBeenLastCalledWith(
+      "/rent?bedrooms=2&sort=price-low",
+      { scroll: false },
+    );
+  });
+
+  it("reset removes filters while keeping the valid stay search", () => {
+    mockSearchParams = "q=escalante&adults=2&location=Heredia";
+    const { result } = renderHook(() => useRentFilters());
+
+    act(() => result.current.reset());
+
+    expect(mockRouterReplace).toHaveBeenLastCalledWith(
+      "/rent?q=escalante&adults=2",
+      { scroll: false },
+    );
+  });
+
+  it("keeps clear-all state for search keys before navigation commits", () => {
+    mockSearchParams = "q=escalante&adults=2&location=Heredia";
+    const { result } = renderHook(() => useRentFilters());
+
+    act(() => {
+      result.current.reset();
+      result.current.setFilters({ bedrooms: "2" });
+    });
+
+    expect(mockRouterReplace.mock.calls).toEqual([
+      ["/rent?q=escalante&adults=2", { scroll: false }],
+      ["/rent?bedrooms=2&q=escalante&adults=2", { scroll: false }],
+    ]);
   });
 });

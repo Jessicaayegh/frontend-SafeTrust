@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import RentalDetail from "./RentalDetail";
 import {
@@ -16,12 +17,10 @@ export function generateStaticParams() {
 
 export default async function RentalDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ id }, search] = await Promise.all([params, searchParams]);
+  const { id } = await params;
   const apartment = APARTMENT_LISTINGS.find((listing) => listing.id === id);
 
   // Unknown ids must 404, not silently show another listing.
@@ -29,20 +28,9 @@ export default async function RentalDetailPage({
 
   const suggestions = getSuggestedApartments(apartment.id);
 
-  const listingSearchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(search)) {
-    if (Array.isArray(value)) {
-      for (const item of value) listingSearchParams.append(key, item);
-    } else if (value !== undefined) {
-      listingSearchParams.append(key, value);
-    }
-  }
-
   return (
-    <RentalDetail
-      apartment={apartment}
-      suggestions={suggestions}
-      listingSearchParams={listingSearchParams.toString()}
-    />
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <RentalDetail apartment={apartment} suggestions={suggestions} />
+    </Suspense>
   );
 }
