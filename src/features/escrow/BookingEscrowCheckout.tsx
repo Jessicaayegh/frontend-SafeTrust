@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  canReplaceBooking,
   MISSING_HOST_WALLET_MESSAGE,
   sameBooking,
   type BookingDetails,
@@ -142,12 +143,13 @@ export function BookingEscrowCheckout({
       intent &&
       !sameBooking(intent.booking, booking) &&
       canDiscard &&
+      canReplaceBooking(state) &&
       !isBusy
     ) {
       discard();
       setReviewing(false);
     }
-  }, [booking, canDiscard, discard, intent, isBusy]);
+  }, [booking, canDiscard, discard, intent, isBusy, state]);
 
   React.useEffect(() => {
     if (flow.error) onError?.(flow.error);

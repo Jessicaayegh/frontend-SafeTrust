@@ -291,6 +291,47 @@ it("a deployed booking offers Fund now, which never redeploys", async () => {
   });
 });
 
+it("preserves a deployed escrow when the selected dates change", async () => {
+  const originalBooking = makeBooking();
+  const changedBooking = makeBooking({
+    checkIn: "2030-01-11",
+    checkOut: "2030-01-13",
+  });
+  chain.escrows.push({
+    engagementId: "b-deployed",
+    contractId: "C3",
+    amount: originalBooking.price.total,
+    balance: 0,
+  });
+  saveIntent({
+    ...createIntent("b-deployed", originalBooking),
+    signer: GUEST,
+    state: { step: "deployed", contractId: "C3" },
+  });
+  sessionStorage.setItem(activeBookingKey("1"), "b-deployed");
+
+  const { rerender } = renderCheckout({ booking: originalBooking });
+  const fundNow = await screen.findByRole("button", { name: /Fund now/ });
+  await waitFor(() => expect(fundNow).toBeEnabled());
+
+  rerender(
+    <QueryWrapper>
+      <BookingEscrowCheckout
+        listingId="1"
+        booking={changedBooking}
+        guestAddress={GUEST}
+        onConnectWallet={jest.fn()}
+      />
+    </QueryWrapper>,
+  );
+
+  await waitFor(() =>
+    expect(sessionStorage.getItem(activeBookingKey("1"))).toBe("b-deployed"),
+  );
+  expect(screen.getByRole("button", { name: /Fund now/ })).toBeInTheDocument();
+  expect(fakes.deployApi).not.toHaveBeenCalled();
+});
+
 it("refuses to book a stay whose host has no wallet", async () => {
   renderCheckout({ booking: makeBooking({ hostAddress: "" }) });
 

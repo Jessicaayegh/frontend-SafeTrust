@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { differenceInCalendarDays, format } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import { useRouter } from "next/navigation";
 import type { ApartmentListing } from "@/types/hotel";
 import { CustomDateRangePicker } from "@/components/rooms/booking/CustomDateRangePicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { BookingEscrowCheckout } from "./BookingEscrowCheckout";
 import { computeBookingPrice } from "./pricing";
 
 export function RentCheckout({ listing }: { listing: ApartmentListing }) {
+  const router = useRouter();
   const [dateRange, setDateRange] = useState<DateRange>();
   const [walletError, setWalletError] = useState<string>();
   const address = useGlobalAuthenticationStore((state) => state.address);
@@ -118,6 +120,13 @@ export function RentCheckout({ listing }: { listing: ApartmentListing }) {
                 }
                 guestAddress={address}
                 onConnectWallet={() => void handleConnectWallet()}
+                onFunded={(intent) => {
+                  if (intent.state.step === "funded") {
+                    router.push(
+                      `/rent/${listing.id}/escrow/${intent.state.contractId}`,
+                    );
+                  }
+                }}
                 showBreakdown
               />
             </EscrowProviders>
