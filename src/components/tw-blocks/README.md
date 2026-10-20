@@ -8,8 +8,6 @@ block unless a page renders it in the same PR.
 |---|---|
 | `escrows/multi-release/approve-milestone` | `components/hotel/CheckInApproval.tsx` |
 | `escrows/multi-release/change-milestone-status` | `components/hotel/CheckOutProcess.tsx` |
-| `escrows/multi-release/initialize-escrow/form` | `components/booking/EscrowCreationForm.tsx` |
-| `escrows/single-release/initialize-escrow/form` | `components/booking/EscrowCreationForm.tsx` |
 
 ## Regenerating a block
 
@@ -30,8 +28,8 @@ form variant that is not rendered by the product.
 ## Local modifications
 
 `ReactQueryClientProvider` was removed from this directory. React Query is
-provided once by `src/providers/QueryProvider.tsx`, while Trustless Work and
-`EscrowProvider` are scoped through `src/providers/EscrowProviders.tsx`.
+provided once by `src/providers/QueryProvider.tsx`. The guest checkout uses the
+shared escrow service and does not mount a second query or wallet provider.
 
 The root `AppProviders` owns the shared wallet provider. Escrow components must
 not add another QueryClient or WalletProvider.

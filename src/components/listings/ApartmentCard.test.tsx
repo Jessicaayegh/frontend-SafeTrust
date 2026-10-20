@@ -25,6 +25,14 @@ describe("ApartmentCard – Message host", () => {
     ).toBeInTheDocument();
   });
 
+  it("navigates to the rental escrow checkout when Book is clicked", () => {
+    render(<ApartmentCard apartment={STUB_HOTELS[0]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Book/i }));
+
+    expect(mockPush).toHaveBeenCalledWith("/rent/1/escrow/create");
+  });
+
   it("navigates to the matching conversation thread when Message host is clicked", () => {
     render(<ApartmentCard apartment={STUB_HOTELS[0]} />);
 

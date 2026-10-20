@@ -89,6 +89,7 @@ export default function ApartmentCard({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            router.push(`/rent/${apartment.id}/escrow/create`);
           }}
           className="mt-auto w-full rounded-lg bg-orange-500 py-2 px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-orange-600"
         >

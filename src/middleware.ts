@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/guest", "/bookings"];
+const PROTECTED_PREFIXES = ["/dashboard", "/guest"];
 
 const PROTECTED_PATTERNS = [/^\/hotels\/[^/]+\/book(\/.*)?$/];
 
