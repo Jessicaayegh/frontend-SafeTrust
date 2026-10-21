@@ -10,6 +10,12 @@ export default {
   ],
   theme: {
     extend: {
+      keyframes: {
+        "skyline-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+        },
+      },
+      animation: { "skyline-in": "skyline-in 500ms ease-out both" },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -40,6 +46,10 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

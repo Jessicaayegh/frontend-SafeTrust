@@ -58,7 +58,13 @@ export async function POST(
           Authorization: authorization,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(input),
+        body: JSON.stringify({
+          category: input.category,
+          ...(typeof input.details === "string" && input.details.trim()
+            ? { details: input.details.trim() }
+            : {}),
+          clientOpId: input.clientOpId,
+        }),
       },
     );
     const contentType = response.headers.get("content-type");

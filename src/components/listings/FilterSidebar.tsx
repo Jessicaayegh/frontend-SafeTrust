@@ -1,165 +1,90 @@
-'use client';
+"use client";
 
-import { HOTEL_CATEGORIES, HOTEL_LOCATIONS } from '@/lib/mockData/hotels';
-import { formatListingPrice } from './formatListingPrice';
+import { formatListingPrice } from "./formatListingPrice";
+import { PRICE_BOUNDS, type RentFilters } from "./filters/useRentFilters";
 
 interface FilterSidebarProps {
-  selectedCategories: string[];
-  selectedLocations: string[];
-  minPrice: number;
-  maxPrice: number;
-  onCategoryToggle: (category: string) => void;
-  onLocationToggle: (location: string) => void;
-  onMinPriceChange: (value: number) => void;
-  onMaxPriceChange: (value: number) => void;
+  filters: RentFilters;
+  setFilters: (patch: Partial<RentFilters>) => void;
+  reset: () => void;
+  className?: string;
 }
 
-const PRICE_BARS = [
-  { id: 'bar-1', height: 10 },
-  { id: 'bar-2', height: 18 },
-  { id: 'bar-3', height: 24 },
-  { id: 'bar-4', height: 20 },
-  { id: 'bar-5', height: 28 },
-  { id: 'bar-6', height: 16 },
-  { id: 'bar-7', height: 22 },
-  { id: 'bar-8', height: 14 },
-  { id: 'bar-9', height: 10 },
-  { id: 'bar-10', height: 26 },
-];
-
-function CheckboxRow({
-  checked,
-  label,
-  onChange,
-}: {
-  checked: boolean;
-  label: string;
-  onChange: () => void;
-}) {
-  return (
-    <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 dark:border-slate-600"
-      />
-      {label}
-    </label>
-  );
-}
-
+/** Price controls shared by the sidebar and mobile filter sheet. */
 export default function FilterSidebar({
-  selectedCategories,
-  selectedLocations,
-  minPrice,
-  maxPrice,
-  onCategoryToggle,
-  onLocationToggle,
-  onMinPriceChange,
-  onMaxPriceChange,
+  filters,
+  setFilters,
+  reset,
+  className,
 }: FilterSidebarProps) {
-  const leftPercent = ((minPrice - 3200) / (206000 - 3200)) * 100;
-  const rightPercent = ((maxPrice - 3200) / (206000 - 3200)) * 100;
+  const { minPrice, maxPrice } = filters;
 
   return (
-    <aside className="w-full border-b border-gray-200 px-6 py-8 lg:w-[215px] lg:border-b-0 lg:border-r dark:border-slate-700 dark:bg-slate-900/0">
-      <section className="pb-8">
-        <h2 className="mb-5 text-[15px] font-semibold text-gray-900 dark:text-white">
-          Category
-        </h2>
-        <div className="space-y-3">
-          {HOTEL_CATEGORIES.map((category) => (
-            <CheckboxRow
-              key={category}
-              checked={selectedCategories.includes(category)}
-              label={category}
-              onChange={() => onCategoryToggle(category)}
-            />
-          ))}
-        </div>
-      </section>
-
-      <div className="my-0 h-px bg-gray-200 dark:bg-slate-700" />
-
+    <aside
+      className={
+        className ??
+        "w-full border-b border-border px-6 py-8 lg:border-b-0 lg:border-r"
+      }
+    >
       <section className="py-8">
-        <h2 className="mb-3 text-[15px] font-semibold text-gray-900 dark:text-white">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">
           Price Range
         </h2>
         <p className="mb-5 text-sm text-gray-700 dark:text-gray-300">
           {formatListingPrice(minPrice)} - {formatListingPrice(maxPrice)}
         </p>
 
-        <div className="relative px-2 pb-3">
-          <div className="mb-4 flex h-10 items-end justify-between gap-1">
-            {PRICE_BARS.map((bar) => (
-              <span
-                key={bar.id}
-                className="w-full rounded-t-sm bg-orange-200 dark:bg-orange-900/30"
-                style={{ height: `${bar.height}px` }}
-              />
-            ))}
-          </div>
-          <div className="relative h-1 rounded-full bg-orange-100 dark:bg-orange-900/20">
-            <div
-              className="absolute h-1 rounded-full bg-orange-500"
-              style={{
-                left: `${leftPercent}%`,
-                width: `${Math.max(rightPercent - leftPercent, 4)}%`,
-              }}
-            />
-            <span
-              className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white bg-orange-500 shadow"
-              style={{ left: `calc(${leftPercent}% - 8px)` }}
-            />
-            <span
-              className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white bg-orange-500 shadow"
-              style={{ left: `calc(${rightPercent}% - 8px)` }}
-            />
-          </div>
+        <div className="space-y-3">
+          <label
+            className="block text-xs text-muted-foreground"
+            htmlFor="minimum-price-range"
+          >
+            Minimum price
+          </label>
           <input
             type="range"
-            min={3200}
-            max={206000}
+            aria-label="Minimum price"
+            min={PRICE_BOUNDS.min}
+            max={PRICE_BOUNDS.max}
             step={100}
             value={minPrice}
             onChange={(event) =>
-              onMinPriceChange(Math.min(Number(event.target.value), maxPrice))
+              setFilters({
+                minPrice: Math.min(Number(event.target.value), maxPrice),
+              })
             }
-            className="absolute inset-x-0 top-0 h-full w-full appearance-none bg-transparent opacity-0 cursor-pointer"
+            className="min-h-10 w-full touch-pan-y accent-orange-500"
           />
+          <label
+            className="block text-xs text-muted-foreground"
+            htmlFor="maximum-price-range"
+          >
+            Maximum price
+          </label>
           <input
             type="range"
-            min={3200}
-            max={206000}
+            aria-label="Maximum price"
+            min={PRICE_BOUNDS.min}
+            max={PRICE_BOUNDS.max}
             step={100}
             value={maxPrice}
             onChange={(event) =>
-              onMaxPriceChange(Math.max(Number(event.target.value), minPrice))
+              setFilters({
+                maxPrice: Math.max(Number(event.target.value), minPrice),
+              })
             }
-            className="absolute inset-x-0 top-0 h-full w-full appearance-none bg-transparent opacity-0 cursor-pointer"
+            className="min-h-10 w-full touch-pan-y accent-orange-500"
           />
         </div>
       </section>
 
-      <div className="my-0 h-px bg-gray-200 dark:bg-slate-700" />
-
-      <section className="pt-8">
-        <h2 className="mb-5 text-[15px] font-semibold text-gray-900 dark:text-white">
-          Location
-        </h2>
-        <div className="space-y-3">
-          {HOTEL_LOCATIONS.map((location) => (
-            <CheckboxRow
-              key={location}
-              checked={selectedLocations.includes(location)}
-              label={location}
-              onChange={() => onLocationToggle(location)}
-            />
-          ))}
-        </div>
-      </section>
+      <button
+        type="button"
+        onClick={reset}
+        className="mt-8 w-full text-left text-sm font-medium text-orange-700 hover:text-orange-800 dark:text-orange-400"
+      >
+        Clear all filters
+      </button>
     </aside>
   );
 }
-

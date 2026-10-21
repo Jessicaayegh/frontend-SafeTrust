@@ -44,6 +44,7 @@ describe("POST /api/listings/[id]/reports", () => {
       category: "safety",
       details: "Broken lock",
       clientOpId: CLIENT_OP_ID,
+      isAdmin: true,
     };
 
     const response = await POST(createRequest(body), {
@@ -63,7 +64,11 @@ describe("POST /api/listings/[id]/reports", () => {
           Authorization: "Bearer firebase-token",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          category: body.category,
+          details: body.details,
+          clientOpId: body.clientOpId,
+        }),
       }),
     );
   });
