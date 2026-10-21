@@ -291,6 +291,87 @@ it("a deployed booking offers Fund now, which never redeploys", async () => {
   });
 });
 
+it("requires the original Stellar wallet to fund a restored escrow", async () => {
+  const booking = makeBooking();
+  const onConnectWallet = jest.fn();
+  chain.escrows.push({
+    engagementId: "b-restored",
+    contractId: "C-restored",
+    amount: booking.price.total,
+    balance: 0,
+  });
+  saveIntent({
+    ...createIntent("b-restored", booking),
+    signer: GUEST,
+    state: { step: "deployed", contractId: "C-restored" },
+  });
+  sessionStorage.setItem(activeBookingKey("1"), "b-restored");
+
+  renderCheckout({
+    booking: null,
+    guestAddress: HOST,
+    onConnectWallet,
+  });
+
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Reconnect escrow wallet" }),
+  );
+
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    /wallet used to create this escrow/,
+  );
+  expect(
+    screen.queryByRole("button", { name: /Fund now/ }),
+  ).not.toBeInTheDocument();
+  expect(onConnectWallet).toHaveBeenCalledTimes(1);
+  expect(fakes.fundApi).not.toHaveBeenCalled();
+});
+
+it("keeps an uncertain deploy recoverable when dates change", async () => {
+  const originalBooking = makeBooking();
+  const changedBooking = makeBooking({
+    checkIn: "2030-01-11",
+    checkOut: "2030-01-13",
+  });
+  saveIntent({
+    ...createIntent("b-uncertain", originalBooking),
+    signer: GUEST,
+    state: {
+      step: "failed",
+      at: "deploy",
+      reason: "network",
+      txHash: "uncertain-deploy-tx",
+    },
+  });
+  sessionStorage.setItem(activeBookingKey("1"), "b-uncertain");
+  fakes.getEscrowsBySigner.mockRejectedValue(new Error("Indexer unavailable"));
+  fakes.txStatusApi.mockResolvedValue({ status: "PENDING" });
+
+  const { rerender } = renderCheckout({ booking: originalBooking });
+  await screen.findByRole("button", { name: "Check again" });
+
+  rerender(
+    <QueryWrapper>
+      <BookingEscrowCheckout
+        listingId="1"
+        booking={changedBooking}
+        guestAddress={GUEST}
+        onConnectWallet={jest.fn()}
+      />
+    </QueryWrapper>,
+  );
+
+  await waitFor(() =>
+    expect(sessionStorage.getItem(activeBookingKey("1"))).toBe("b-uncertain"),
+  );
+  expect(
+    screen.queryByRole("button", { name: /Book Now/ }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Start over" }),
+  ).not.toBeInTheDocument();
+});
+
 it("preserves a deployed escrow when the selected dates change", async () => {
   const originalBooking = makeBooking();
   const changedBooking = makeBooking({

@@ -163,6 +163,24 @@ export function BookingEscrowCheckout({
   const hostMissing = !!activeBooking && !activeBooking.hostAddress;
   const connected =
     !!guestAddress && StrKey.isValidEd25519PublicKey(guestAddress);
+  const walletMatchesIntent =
+    connected && (!intent?.signer || intent.signer === guestAddress);
+  const walletAction = (
+    <>
+      <p role="alert" className="text-sm text-amber-700 dark:text-amber-400">
+        {!connected
+          ? "Connect a Stellar wallet to continue this escrow."
+          : `Reconnect the wallet used to create this escrow (${intent?.signer?.slice(0, 4)}…${intent?.signer?.slice(-4)}).`}
+      </p>
+      <Button
+        className="h-12 w-full rounded-3xl"
+        onClick={onConnectWallet}
+      >
+        <Wallet className="h-4 w-4" />
+        {connected ? "Reconnect escrow wallet" : "Connect a Stellar wallet"}
+      </Button>
+    </>
+  );
 
   const errorLine = flow.error ? (
     <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -245,18 +263,22 @@ export function BookingEscrowCheckout({
             <p className="text-sm">
               Escrow created. Fund it to confirm your booking
             </p>
-            <Button
-              className="h-12 w-full rounded-3xl"
-              onClick={flow.fundNow}
-              disabled={flow.isBusy}
-            >
-              {flow.isBusy ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Wallet className="h-4 w-4" />
-              )}
-              Fund now - {formatAmount(intent.amount)}
-            </Button>
+            {walletMatchesIntent ? (
+              <Button
+                className="h-12 w-full rounded-3xl"
+                onClick={flow.fundNow}
+                disabled={flow.isBusy}
+              >
+                {flow.isBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Wallet className="h-4 w-4" />
+                )}
+                Fund now - {formatAmount(intent.amount)}
+              </Button>
+            ) : (
+              walletAction
+            )}
             {flow.canDiscard && (
               <Button variant="ghost" className="w-full" onClick={flow.discard}>
                 Start over
@@ -297,7 +319,8 @@ export function BookingEscrowCheckout({
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
               {FAILURE_COPY[state.reason]}
             </p>
-            {state.reason !== "amount-mismatch" && (
+            {state.reason !== "amount-mismatch" &&
+              (walletMatchesIntent ? (
               <Button
                 className="h-12 w-full rounded-3xl"
                 onClick={flow.retry}
@@ -306,7 +329,9 @@ export function BookingEscrowCheckout({
                 {flow.isBusy && <Loader2 className="h-4 w-4 animate-spin" />}
                 {retryLabel}
               </Button>
-            )}
+              ) : (
+                walletAction
+              ))}
             {flow.inFlight && state.reason === "rejected" && (
               <p className="text-xs text-muted-foreground">
                 Close the wallet window to try again.

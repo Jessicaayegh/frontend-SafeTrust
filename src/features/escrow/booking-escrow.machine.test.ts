@@ -2,6 +2,7 @@ import { Keypair } from "@stellar/stellar-sdk";
 import {
   buildDeployPayload,
   canDiscard,
+  canReplaceBooking,
   classifyTxError,
   clearIntent,
   createIntent,
@@ -527,6 +528,31 @@ describe("state helpers", () => {
       }),
     ).toBe(false);
     expect(canDiscard({ step: "funded", contractId: "C" })).toBe(false);
+  });
+
+  it("preserves deploys whose transaction outcome is uncertain", () => {
+    const uncertainDeploy: BookingEscrowState = {
+      step: "failed",
+      at: "deploy",
+      reason: "network",
+      txHash: "tx-hash",
+    };
+
+    expect(canDiscard(uncertainDeploy)).toBe(false);
+    expect(canReplaceBooking(uncertainDeploy)).toBe(false);
+    expect(
+      planNextAction({
+        state: uncertainDeploy,
+        escrow: null,
+      }),
+    ).toBe("none");
+    expect(
+      canReplaceBooking({
+        step: "failed",
+        at: "deploy",
+        reason: "rejected",
+      }),
+    ).toBe(true);
   });
 });
 
