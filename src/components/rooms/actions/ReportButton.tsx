@@ -81,7 +81,7 @@ export default function ReportButton({
   const [unavailable, setUnavailable] = useState(false);
   const [error, setError] = useState("");
   const successRef = useRef<HTMLParagraphElement>(null);
-  const operationRef = useRef<{ key: string; id: string }>();
+  const operationRef = useRef<{ key: string; id: string } | null>(null);
   const submitLockRef = useRef(false);
   const validationError = validateReportInput(category, details);
 
@@ -104,7 +104,7 @@ export default function ReportButton({
     setDetails("");
     setError("");
     setSubmitted(false);
-    operationRef.current = undefined;
+    operationRef.current = null;
     setIsOpen(true);
   };
 
@@ -124,8 +124,10 @@ export default function ReportButton({
 
     try {
       const key = JSON.stringify([listingId, category, details.trim()]);
-      if (!operationRef.current || operationRef.current.key !== key) {
-        operationRef.current = { key, id: createClientOpId() };
+      let operation = operationRef.current;
+      if (!operation || operation.key !== key) {
+        operation = { key, id: createClientOpId() };
+        operationRef.current = operation;
       }
 
       await submitListingReport(
@@ -134,10 +136,10 @@ export default function ReportButton({
           category,
           ...(details.trim() ? { details: details.trim() } : {}),
         },
-        operationRef.current.id,
+        operation.id,
       );
       setSubmitted(true);
-      operationRef.current = undefined;
+      operationRef.current = null;
     } catch (submitError) {
       const message = errorMessage(submitError);
       setError(message);
