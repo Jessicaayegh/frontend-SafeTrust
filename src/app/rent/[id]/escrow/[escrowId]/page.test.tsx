@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { stellarExpertContractUrl } from "@/features/escrow/config";
 import RentalEscrowReferencePage from "./page";
 
 jest.mock("next/navigation", () => ({
@@ -15,10 +16,7 @@ describe("RentalEscrowReferencePage", () => {
     expect(screen.getByText("C123")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /verify contract on stellar expert/i }),
-    ).toHaveAttribute(
-      "href",
-      "https://stellar.expert/explorer/testnet/contract/C123",
-    );
+    ).toHaveAttribute("href", stellarExpertContractUrl("C123"));
     expect(screen.queryByText("Booking confirmed")).not.toBeInTheDocument();
   });
 });

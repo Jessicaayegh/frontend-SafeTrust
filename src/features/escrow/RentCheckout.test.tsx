@@ -59,3 +59,31 @@ it("navigates to the rental escrow after funding", () => {
 
   expect(mockPush).toHaveBeenCalledWith("/rent/apt-42/escrow/C-123");
 });
+
+it("initializes the checkout with the selected stay dates", () => {
+  render(
+    <RentCheckout
+      listing={listing}
+      initialCheckIn="2026-11-01"
+      initialCheckOut="2026-11-06"
+    />,
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Nov 01 - Nov 06 (5 nights)" }),
+  ).toBeInTheDocument();
+});
+
+it("ignores invalid or reversed initial stay dates", () => {
+  render(
+    <RentCheckout
+      listing={listing}
+      initialCheckIn="2026-11-06"
+      initialCheckOut="2026-11-01"
+    />,
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Select check-in and check-out" }),
+  ).toBeInTheDocument();
+});

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { differenceInCalendarDays, format } from "date-fns";
+import { differenceInCalendarDays, format, isValid, parseISO } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { useRouter } from "next/navigation";
 import type { ApartmentListing } from "@/types/hotel";
@@ -13,9 +13,29 @@ import { EscrowProviders } from "@/providers/EscrowProviders";
 import { BookingEscrowCheckout } from "./BookingEscrowCheckout";
 import { computeBookingPrice } from "./pricing";
 
-export function RentCheckout({ listing }: { listing: ApartmentListing }) {
+export function RentCheckout({
+  listing,
+  initialCheckIn,
+  initialCheckOut,
+}: {
+  listing: ApartmentListing;
+  initialCheckIn?: string;
+  initialCheckOut?: string;
+}) {
   const router = useRouter();
-  const [dateRange, setDateRange] = useState<DateRange>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    if (!initialCheckIn || !initialCheckOut) return undefined;
+    const from = parseISO(initialCheckIn);
+    const to = parseISO(initialCheckOut);
+    if (
+      !isValid(from) ||
+      !isValid(to) ||
+      differenceInCalendarDays(to, from) < 1
+    ) {
+      return undefined;
+    }
+    return { from, to };
+  });
   const [walletError, setWalletError] = useState<string>();
   const address = useGlobalAuthenticationStore((state) => state.address);
   const { connect } = useWallet();
