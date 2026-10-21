@@ -6,6 +6,7 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import AmenityIcons from './AmenityIcons';
 import { formatListingPrice } from './formatListingPrice';
 import ImageGallery from './ImageGallery';
+import ReportButton from '@/components/rooms/actions/ReportButton';
 
 interface ApartmentDetailProps {
   apartment: HotelListing;
@@ -71,6 +72,12 @@ export default function ApartmentDetail({
               width={34}
               height={34}
               className="h-[34px] w-[34px] rounded-full object-cover"
+            />
+          </div>
+          <div className="mt-3 flex justify-end">
+            <ReportButton
+              listingId={apartment.id}
+              listingName={apartment.name}
             />
           </div>
         </div>

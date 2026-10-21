@@ -60,14 +60,6 @@ export default function RoomPage() {
     console.log("Contact form opened");
   };
 
-  const handleReport = () => {
-    if (!isAuthenticated) {
-      alert("Please login to report this listing");
-      return;
-    }
-    console.log("Report form opened");
-  };
-
   const [bookingData, setBookingData] = useState<{
     bookingId: string;
     checkIn: Date;
@@ -138,11 +130,12 @@ export default function RoomPage() {
           <RoomDetailsCard isLoading={isLoading} />
           {/* Action Bar */}
           <RoomActionBar
+            listingId={hotelId}
+            listingName="Shikara Hotel"
             isLiked={isLiked}
             likeCount={likeCount}
             onLike={handleLike}
             onContact={handleContact}
-            onReport={handleReport}
           />
           {/* Amenities */}
           <AmenitiesCard isLoading={isLoading} />

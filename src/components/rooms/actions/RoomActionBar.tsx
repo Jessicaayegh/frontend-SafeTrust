@@ -8,24 +8,26 @@ import ContactButton from "./ContactButton";
 import ReportButton from "./ReportButton";
 
 interface RoomActionBarProps {
+  listingId: string;
+  listingName: string;
   isLiked?: boolean;
   likeCount?: number;
   onShare?: () => void;
   onLike?: () => void;
   onContact?: () => void;
-  onReport?: () => void;
   onCall?: () => void;
   showTrustBadges?: boolean;
   className?: string;
 }
 
 const RoomActionBar = ({
+  listingId,
+  listingName,
   isLiked = false,
   likeCount = 24,
   onShare,
   onLike,
   onContact,
-  onReport,
   onCall,
   showTrustBadges = true,
   className = "",
@@ -85,7 +87,7 @@ const RoomActionBar = ({
             </div>
           </div>
 
-          <ReportButton onReport={onReport} />
+          <ReportButton listingId={listingId} listingName={listingName} />
         </div>
       )}
 
