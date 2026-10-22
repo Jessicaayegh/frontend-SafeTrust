@@ -9,23 +9,42 @@ import { cn } from "@/lib/utils";
 import AmenityIcons from "./AmenityIcons";
 import { ListingPrice } from "./ListingPrice";
 import ImageGallery from "./ImageGallery";
+import { ListingLocation } from "@/features/listings/detail/ListingLocation";
+import {
+  BookingSummaryBar,
+  type BookingIntent,
+} from "@/features/listings/detail/BookingSummaryBar";
 
 interface ApartmentDetailProps {
   apartment: ApartmentListing;
   onBook: () => void;
+<<<<<<< HEAD
   isSaved?: boolean;
   onToggleSaved?: () => void;
+=======
+  intent?: BookingIntent;
+  onBookExact?: (params: {
+    checkIn: string;
+    checkOut: string;
+    adults: number;
+  }) => void;
+>>>>>>> upstream/main
 }
 
 /** Render rental details, amenities, owner information, and booking action. */
 export default function ApartmentDetail({
   apartment,
   onBook,
+<<<<<<< HEAD
   isSaved = false,
   onToggleSaved,
+=======
+  intent,
+  onBookExact,
+>>>>>>> upstream/main
 }: ApartmentDetailProps) {
   return (
-    <section className="flex-1 px-6 py-8 lg:px-10">
+    <section className="flex-1 px-6 py-8 pb-28 lg:pb-8 lg:px-10">
       <ImageGallery
         images={apartment.images}
         promoted={apartment.promoted}
@@ -122,6 +141,16 @@ export default function ApartmentDetail({
           {apartment.description}
         </p>
       </div>
+
+      <div className="mt-10 max-w-3xl border-t border-border pt-8">
+        <ListingLocation listing={apartment} />
+      </div>
+
+      <BookingSummaryBar
+        listing={apartment}
+        intent={intent}
+        onBookExact={onBookExact || (() => onBook())}
+      />
     </section>
   );
 }

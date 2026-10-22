@@ -1,4 +1,4 @@
-﻿const pad = (n: number) => String(n).padStart(2, "0");
+const pad = (n: number) => String(n).padStart(2, "0");
 const parts = (iso: string) =>
   iso.split("-").map(Number) as [number, number, number];
 
@@ -39,7 +39,6 @@ export function addMonths(month: string, count: number): string {
 export function localToday(now: Date = new Date()): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
-
 export function toIsoDate(date: Date): string {
   return localToday(date);
 }
@@ -70,3 +69,4 @@ export function formatDateRangeSummary(
   }
   return `${formatter.format(start)} – ${end.getDate()}`;
 }
+
