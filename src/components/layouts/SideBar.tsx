@@ -7,6 +7,11 @@ import { LogoutButton } from "@/components/auth/LogoutButton";
 import { UnreadBadge } from "@/components/messages/UnreadBadge";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import {
+  navItemActiveClassName,
+  navItemClassName,
+  navItemHoverClassName,
+} from "./nav-item-styles";
 import { NAV_ITEMS, isActive } from "./nav-items";
 
 interface SideBarProps {
@@ -54,9 +59,9 @@ export function SideBar({
                 onClick={onClose}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group relative flex w-full items-center gap-3 rounded-lg p-2 transition-colors duration-200 bg-sky-50/70 hover:bg-accent hover:text-accent-foreground dark:bg-transparent dark:text-gray-300 dark:hover:bg-accent dark:hover:text-accent-foreground",
-                  active &&
-                    "bg-accent text-accent-foreground ring-1 ring-sky-300 dark:bg-accent dark:text-accent-foreground dark:ring-sky-700",
+                  navItemClassName,
+                  !active && navItemHoverClassName,
+                  active && navItemActiveClassName,
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
