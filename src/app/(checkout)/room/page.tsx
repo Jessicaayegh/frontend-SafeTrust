@@ -3,13 +3,13 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
   RoomPhotos,
   AdditionalRoomPhotos,
   RoomDetailsCard,
   RoomActionBar,
   MobileBookingCard,
-  RoomBookingCard,
   BookingConfirmation,
   AmenitiesCard,
   LocationCard,
@@ -23,6 +23,23 @@ import { PageContainer } from "@/components/layouts/PageContainer";
 import { PageHeader } from "@/components/layouts/PageHeader";
 import { getApartmentById } from "@/lib/mockData/apartmentListings";
 import type { BookingDetails } from "@/features/escrow/booking-escrow.machine";
+
+const RoomBookingCard = dynamic(
+  () =>
+    import("@/components/rooms/booking/RoomBookingCard").then(
+      (module) => module.RoomBookingCard,
+    ),
+  {
+    loading: () => (
+      <div
+        className="h-[28rem] w-full max-w-md animate-pulse rounded-3xl border border-border bg-muted"
+        role="status"
+      >
+        Loading booking options…
+      </div>
+    ),
+  },
+);
 
 const roomListing = getApartmentById("1");
 const additionalImages = roomListing.images.slice(1);
