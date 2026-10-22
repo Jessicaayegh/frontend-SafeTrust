@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import {
   RoomPhotos,
   AdditionalRoomPhotos,
@@ -24,7 +24,7 @@ import { PageHeader } from "@/components/layouts/PageHeader";
 import { getApartmentById } from "@/lib/mockData/apartmentListings";
 import type { BookingDetails } from "@/features/escrow/booking-escrow.machine";
 
-const RoomBookingCard = dynamic(
+const RoomBookingCard = nextDynamic(
   () =>
     import("@/components/rooms/booking/RoomBookingCard").then(
       (module) => module.RoomBookingCard,
