@@ -34,6 +34,7 @@ export async function proxyToBackend(
       },
       ...(body ? { body } : {}),
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     });
   } catch (error) {
     console.error("Account backend proxy error:", error);
