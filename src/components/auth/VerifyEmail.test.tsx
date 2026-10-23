@@ -308,7 +308,9 @@ describe("VerifyEmail page", () => {
     await waitFor(() => {
       expect(signOut).toHaveBeenCalledTimes(1);
       expect(clearSessionCookie).toHaveBeenCalledTimes(1);
-      expect(mockPush).toHaveBeenCalledWith("/login");
+      expect(mockPush).toHaveBeenCalledWith(
+        `/login?redirect=${encodeURIComponent("/dashboard/escrow-dashboard")}`,
+      );
     });
   });
 });

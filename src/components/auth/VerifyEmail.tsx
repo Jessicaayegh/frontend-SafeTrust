@@ -131,7 +131,7 @@ export default function VerifyEmail() {
       // Leave for the sign-in page even if sign-out fails.
     } finally {
       clearSessionCookie();
-      router.push("/login");
+      router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
     }
   };
 
