@@ -132,6 +132,13 @@ describe("date-only timezone-safe conversions", () => {
     });
   });
 
+  describe("toIsoDate", () => {
+    it("formats the local calendar day with zero padding", () => {
+      expect(toIsoDate(new Date(2026, 0, 5, 23, 30))).toBe("2026-01-05");
+      expect(toIsoDate(new Date(2026, 11, 31, 0, 5))).toBe("2026-12-31");
+    });
+  });
+
   describe("localToday", () => {
     it("reads the local calendar day, not the UTC day", () => {
       expect(localToday(new Date(2026, 0, 5, 23, 30))).toBe("2026-01-05");

@@ -34,13 +34,3 @@ export interface ApartmentListing extends ApartmentAmenitySummary {
   description: string;
   rating: number;
 }
-
-export interface HotelSearchResult {
-  id: number;
-  name: string;
-  image: string;
-  location: string;
-  stars: number;
-  price: number;
-  isFavorite: boolean;
-}

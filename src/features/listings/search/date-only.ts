@@ -35,9 +35,14 @@ export function addMonths(month: string, count: number): string {
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`;
 }
 
+/** A local calendar day as `YYYY-MM-DD`. */
+export function toIsoDate(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 /** The guest's local calendar day. Pass `now` in tests. */
 export function localToday(now: Date = new Date()): string {
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return toIsoDate(now);
 }
 export function toIsoDate(date: Date): string {
   return localToday(date);
