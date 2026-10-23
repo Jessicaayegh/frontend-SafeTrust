@@ -3,20 +3,20 @@ import { join, relative, sep } from "node:path";
 
 const appDirectory = join(process.cwd(), "src", "app");
 const allowedClientPages = new Set([
-  "bookings/[bookingId]/escrow/page.tsx",
-  "bookings/new/escrow/page.tsx",
-  "dashboard/escrow/page.tsx",
-  "dashboard/hotels/[id]/edit/page.tsx",
-  "dashboard/hotels/[id]/page.tsx",
-  "dashboard/hotels/new/page.tsx",
-  "dashboard/hotels/page.tsx",
-  "dashboard/notifications/page.tsx",
-  "guest/suggestions/page.tsx",
-  "hotels/search/page.tsx",
-  "rent/[id]/escrow/[escrowId]/page.tsx",
-  "rent/[id]/escrow/create/page.tsx",
-  "rent/page.tsx",
-  "room/page.tsx",
+  "(app)/dashboard/escrow/page.tsx",
+  "(app)/dashboard/hotels/[id]/edit/page.tsx",
+  "(app)/dashboard/hotels/[id]/page.tsx",
+  "(app)/dashboard/hotels/new/page.tsx",
+  "(app)/dashboard/hotels/page.tsx",
+  "(app)/dashboard/notifications/page.tsx",
+  "(checkout)/bookings/[bookingId]/escrow/page.tsx",
+  "(checkout)/bookings/new/escrow/page.tsx",
+  "(checkout)/rent/[id]/escrow/[escrowId]/page.tsx",
+  "(checkout)/rent/[id]/escrow/create/page.tsx",
+  "(checkout)/room/page.tsx",
+  "(marketing)/guest/suggestions/page.tsx",
+  "(marketing)/hotels/search/page.tsx",
+  "(marketing)/rent/page.tsx",
 ]);
 
 function findPages(directory) {

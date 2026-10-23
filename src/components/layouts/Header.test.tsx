@@ -77,16 +77,6 @@ describe("Header", () => {
     expect(
       screen.queryByRole("link", { name: /dashboard/i }),
     ).not.toBeInTheDocument();
-<<<<<<< HEAD:src/components/layouts/__tests__/Header.test.tsx
-=======
-  });
-
-  it("navigates to /dashboard/profile when user button is clicked", () => {
-    render(<Header />);
-    const userButton = screen.getByRole("button", { name: /go to profile/i });
-    fireEvent.click(userButton);
-    expect(mockPush).toHaveBeenCalledWith("/dashboard/profile");
->>>>>>> upstream/main:src/components/layouts/Header.test.tsx
   });
 
   it("navigates to /dashboard/notifications when notification bell is clicked", () => {

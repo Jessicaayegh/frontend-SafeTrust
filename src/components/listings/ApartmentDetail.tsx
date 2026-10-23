@@ -18,30 +18,24 @@ import {
 interface ApartmentDetailProps {
   apartment: ApartmentListing;
   onBook: () => void;
-<<<<<<< HEAD
   isSaved?: boolean;
   onToggleSaved?: () => void;
-=======
   intent?: BookingIntent;
   onBookExact?: (params: {
     checkIn: string;
     checkOut: string;
     adults: number;
   }) => void;
->>>>>>> upstream/main
 }
 
 /** Render rental details, amenities, owner information, and booking action. */
 export default function ApartmentDetail({
   apartment,
   onBook,
-<<<<<<< HEAD
   isSaved = false,
   onToggleSaved,
-=======
   intent,
   onBookExact,
->>>>>>> upstream/main
 }: ApartmentDetailProps) {
   return (
     <section className="flex-1 px-6 py-8 pb-28 lg:pb-8 lg:px-10">

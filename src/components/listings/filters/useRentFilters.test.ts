@@ -1,15 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
-<<<<<<< HEAD
+import { addDays, localToday } from "@/features/listings";
 import {
   parseFilters,
   resolveSortOption,
   useRentFilters,
   PRICE_BOUNDS,
 } from "./useRentFilters";
-=======
-import { addDays, localToday } from "@/features/listings";
-import { resolveSortOption, useRentFilters } from "./useRentFilters";
->>>>>>> upstream/main
 
 const mockRouterReplace = jest.fn();
 let mockSearchParams = "";

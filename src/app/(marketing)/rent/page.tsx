@@ -41,13 +41,8 @@ import {
   useRentFilters,
 } from "@/components/listings/filters/useRentFilters";
 import Link from "next/link";
-<<<<<<< HEAD:src/app/rent/page.tsx
-import { LazyMotionProvider } from "@/components/ui/LazyMotionProvider";
-import { RentReveal } from "@/components/listings/RentMotion";
-import { WishlistAnnouncer, useSaveStay } from "@/features/listings";
-=======
 import { RentMotion, RentReveal } from "@/components/listings/RentMotion";
->>>>>>> upstream/main:src/app/(marketing)/rent/page.tsx
+import { WishlistAnnouncer, useSaveStay } from "@/features/listings";
 
 const ApartmentGrid = dynamic(
   () => import("@/components/listings/ApartmentGrid"),

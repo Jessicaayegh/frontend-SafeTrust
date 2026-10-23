@@ -22,14 +22,11 @@ import { NavigationHeader } from "@/components/navigation/NavigationHeader";
 import { PageContainer } from "@/components/layouts/PageContainer";
 import { PageHeader } from "@/components/layouts/PageHeader";
 import { getApartmentById } from "@/lib/mockData/apartmentListings";
-<<<<<<< HEAD:src/app/room/page.tsx
 import { ListingMapDialog } from "@/components/rooms/ListingMapDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { directionsUrl, isValidCoordinate } from "@/lib/geo";
 import { loginHref } from "@/components/navigation/account-routes";
 import { EscrowProviders } from "@/providers/EscrowProviders";
-=======
->>>>>>> upstream/main:src/app/(checkout)/room/page.tsx
 import type { BookingDetails } from "@/features/escrow/booking-escrow.machine";
 
 const roomListing = getApartmentById("1");
@@ -82,6 +79,10 @@ export default function RoomPage() {
     guestCount: number;
     totalPrice: number;
   } | null>(null);
+
+  const handleBookingStart = () => {
+    console.log("Booking process started");
+  };
 
   const handleBookingComplete = (
     bookingId: string,
@@ -194,26 +195,16 @@ export default function RoomPage() {
                   onViewBooking={handleViewBooking}
                 />
               ) : (
-<<<<<<< HEAD:src/app/room/page.tsx
                 <EscrowProviders>
                   <RoomBookingCard
                     roomId="room_001"
                     listing={listing}
                     basePrice={NIGHTLY_RATE}
+                    onBookingStart={handleBookingStart}
                     onBookingComplete={handleBookingComplete}
                     onBookingError={handleBookingError}
                   />
                 </EscrowProviders>
-=======
-                <RoomBookingCard
-                  roomId="room_001"
-                  listing={listing}
-                  basePrice={NIGHTLY_RATE}
-                  onBookingStart={handleBookingStart}
-                  onBookingComplete={handleBookingComplete}
-                  onBookingError={handleBookingError}
-                />
->>>>>>> upstream/main:src/app/(checkout)/room/page.tsx
               )}
             </div>
           </div>

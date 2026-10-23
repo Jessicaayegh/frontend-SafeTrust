@@ -5,11 +5,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-<<<<<<< HEAD
 import { AccountMenu } from "@/components/navigation/AccountMenu";
-=======
 import { useSharedGeolocation } from "@/providers/GeolocationProvider";
->>>>>>> upstream/main
 import {
   ACCOUNT_ROUTES,
   loginHref,
@@ -172,7 +169,6 @@ function HotelHeaderContent({ showHostSwitch }: HotelHeaderProps) {
   );
 }
 
-<<<<<<< HEAD
 function WishlistsButton() {
   const { signedIn, ids } = useWishlist();
   const count = ids.length;
@@ -197,7 +193,9 @@ function WishlistsButton() {
         </span>
       )}
     </Link>
-=======
+  );
+}
+
 function HeaderWhereSearch() {
   const geo = useSharedGeolocation();
 
@@ -259,7 +257,7 @@ function NearbyWherePicker({
         aria-expanded={open}
         aria-controls="where-suggestions"
         onClick={() => setOpen((current) => !current)}
-        className="block w-full min-w-0 truncate rounded-md px-1 py-2 text-left text-sm text-gray-600 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:text-gray-300 dark:hover:text-white"
+        className="block w-full min-w-0 truncate rounded-md px-1 py-2 text-left text-sm text-gray-600 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-gray-300 dark:hover:text-white"
       >
         {nearby ? "Nearby" : "City, province or neighborhood"}
       </button>
@@ -281,7 +279,7 @@ function NearbyWherePicker({
                   geo.request();
                   setNearby(true);
                 }}
-                className="flex min-h-12 w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-wait disabled:opacity-60"
+                className="flex min-h-12 w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-wait disabled:opacity-60"
               >
                 <span className="text-sm font-medium text-foreground">
                   Nearby
@@ -297,7 +295,7 @@ function NearbyWherePicker({
               type="button"
               disabled={!nearby}
               onClick={searchNearby}
-              className="min-h-10 rounded-lg bg-orange-700 px-4 text-sm font-semibold text-white hover:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Search
             </button>
@@ -305,6 +303,5 @@ function NearbyWherePicker({
         </div>
       )}
     </div>
->>>>>>> upstream/main
   );
 }
