@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchHeader } from "@/components/layouts/SearchHeader";
 import { useWallet } from "@/hooks/useWallet";
@@ -56,16 +56,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             </div>
 
             <div className="min-w-0 flex-1 max-w-2xl">
-              <div className="hidden sm:block">
-                <SearchHeader />
-              </div>
-              <Link
-                href="/rent"
-                aria-label="Browse rental properties"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-muted sm:hidden"
-              >
-                <Search aria-hidden="true" className="h-5 w-5" />
-              </Link>
+              <SearchHeader />
             </div>
 
             {/* Right: dashboard | bell | wallet | account menu */}

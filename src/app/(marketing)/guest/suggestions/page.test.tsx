@@ -1,20 +1,11 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import GuestSuggestionsPage from "./page";
-import { useRouter } from "next/navigation";
-import { APARTMENT_LISTINGS } from "@/lib/mockData/apartmentListings";
+import { useRouter, useSearchParams } from "next/navigation";
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
-}));
-
-jest.mock("@/features/listings", () => ({
-  useSaveStay: () => ({
-    isSaved: () => false,
-    toggleSaved: jest.fn(),
-    announcement: "",
-  }),
-  WishlistAnnouncer: () => null,
+  useSearchParams: jest.fn(),
 }));
 
 jest.mock("next/image", () => ({
@@ -28,35 +19,77 @@ jest.mock("@/components/listings/HotelHeader", () => ({
 }));
 
 const mockPush = jest.fn();
+const mockSearchParams = new URLSearchParams();
 
 describe("GuestSuggestionsPage – Message host", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    for (const key of [...mockSearchParams.keys()]) mockSearchParams.delete(key);
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+    (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
   });
 
-  it("renders the Message host link next to Book for the selected apartment", () => {
+  it("renders the Message host button next to Book for the selected apartment", () => {
     render(<GuestSuggestionsPage />);
 
     expect(screen.getByRole("button", { name: /Book/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Message host/i })).toHaveAttribute(
-      "href",
-      `/dashboard/messages/new?listing=${APARTMENT_LISTINGS[0].id}`,
-    );
+    expect(
+      screen.getByRole("button", { name: /Message host/i }),
+    ).toBeInTheDocument();
   });
 
-  it("targets the listing id of whichever apartment is selected", () => {
+  it("navigates to the conversation thread for the selected apartment", () => {
     render(<GuestSuggestionsPage />);
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: `Select ${APARTMENT_LISTINGS[1].name}`,
-      }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Message host/i }));
 
-    expect(screen.getByRole("link", { name: /Message host/i })).toHaveAttribute(
-      "href",
-      `/dashboard/messages/new?listing=${APARTMENT_LISTINGS[1].id}`,
+    expect(mockPush).toHaveBeenCalledWith("/dashboard/messages/conv-4");
+  });
+
+  it("updates the target conversation when another apartment is selected", () => {
+    render(<GuestSuggestionsPage />);
+
+    const losYosesButtons = screen.getAllByRole("button", {
+      name: /Los yoses/i,
+    });
+    fireEvent.click(losYosesButtons[0]);
+    fireEvent.click(screen.getByRole("button", { name: /Message host/i }));
+
+    expect(mockPush).toHaveBeenCalledWith("/dashboard/messages/conv-5");
+  });
+
+  it("filters the suggestions and selected listing by the applied query", () => {
+    mockSearchParams.set("q", "Heredia");
+
+    render(<GuestSuggestionsPage />);
+
+    expect(screen.getByText("2 units available")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Jardín de Heredia House/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /La Estación Flat/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Jardín de Heredia House" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Casa Níspero/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders an empty state without selected-listing actions when nothing matches", () => {
+    mockSearchParams.set("q", "No such place");
+
+    render(<GuestSuggestionsPage />);
+
+    expect(screen.getByText("0 units available")).toBeInTheDocument();
+    expect(screen.getByText("No suggested stays match your search.")).toHaveAttribute(
+      "role",
+      "status",
     );
+    expect(
+      screen.queryByRole("button", { name: /Book with Escrow/ }),
+    ).not.toBeInTheDocument();
   });
 });
