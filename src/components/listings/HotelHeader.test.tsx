@@ -23,7 +23,7 @@ jest.mock("@/components/ui/ThemeToggle", () => ({
   ThemeToggle: () => <button type="button">Theme</button>,
 }));
 
-jest.mock("@/features/listings", () => ({
+jest.mock("@/features/listings/wishlist/useWishlist", () => ({
   useWishlist: () => mockWishlist,
 }));
 
@@ -93,10 +93,10 @@ describe("HotelHeader account actions", () => {
     ).toHaveAttribute("href", "/dashboard/favorites");
   });
 
-  it("uses the account menu instead of a hard-coded name and unread dot", () => {
+  it("uses the account menu instead of a hard-coded name and unread dot", async () => {
     const { container } = render(<HotelHeader />);
     expect(
-      screen.getByRole("button", { name: "Account menu" }),
+      await screen.findByRole("button", { name: "Account menu" }),
     ).toBeInTheDocument();
     expect(container).not.toHaveTextContent("Randall Valenciano");
     expect(container.querySelector(".bg-orange-500")).toBeNull();

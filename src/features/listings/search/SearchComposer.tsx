@@ -166,7 +166,7 @@ export function SearchComposer() {
     <button
       type="button"
       aria-label={`Search stays: ${SECTIONS.map((section) => section.summary(applied)).join(" · ")}`}
-      className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-full border border-border bg-muted/60 px-3 text-left text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 sm:px-4"
+      className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-full border border-border bg-muted/60 px-3 text-left text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4"
     >
       <span className="min-w-0 flex-1 truncate font-medium">
         {SECTIONS.map((section) => section.summary(applied)).join(" · ")}

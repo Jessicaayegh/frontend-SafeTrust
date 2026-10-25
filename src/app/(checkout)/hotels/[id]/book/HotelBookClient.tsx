@@ -9,7 +9,7 @@ import ReservationSummary from "@/components/hotels/payment/ReservationSummary";
 import type { BookingDetails } from "@/features/escrow/booking-escrow.machine";
 import { computeBookingPrice } from "@/features/escrow/pricing";
 import { parseHotelSearch } from "@/features/hotels";
-import { nightsBetween } from "@/features/listings";
+import { nightsBetween } from "@/features/listings/search/date-only";
 import { PageContainer } from "@/components/layouts/PageContainer";
 
 const MOCK_NIGHTS = 2;

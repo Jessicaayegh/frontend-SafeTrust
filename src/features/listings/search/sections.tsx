@@ -30,7 +30,7 @@ function WhereEditor({
                 geo.request({ autoSort: false });
                 setDraft({ location: null, q: "", nearby: true });
               }}
-              className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-wait disabled:opacity-60"
+              className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-wait disabled:opacity-60"
             >
               <span className="text-sm font-medium text-foreground">
                 Nearby
@@ -55,7 +55,7 @@ function WhereEditor({
             })
           }
           placeholder="City, province or neighborhood"
-          className="h-11 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+          className="h-11 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </label>
     </div>

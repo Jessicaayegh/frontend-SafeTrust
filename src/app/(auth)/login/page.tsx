@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Login } from "@/features/auth";
+import Login from "@/components/auth/Login";
 
 export const metadata: Metadata = { title: "Sign in" };
 

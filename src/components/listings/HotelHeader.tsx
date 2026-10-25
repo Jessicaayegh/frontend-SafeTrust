@@ -5,9 +5,23 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { AccountMenu } from "@/components/navigation/AccountMenu";
-import { useWishlist } from "@/features/listings";
+import { AccountMenuSkeleton } from "@/components/navigation/AccountMenuSkeleton";
+import { ACCOUNT_ROUTES, loginHref } from "@/components/navigation/account-routes";
+import { useWishlist } from "@/features/listings/wishlist/useWishlist";
 import { ChevronDown, Grid2X2, Heart, Lightbulb } from "lucide-react";
+
+/**
+ * Code-split: the menu brings in the Radix dropdown and Firebase auth state,
+ * which would otherwise land in this header's first-load JS and push the
+ * marketing/app routes past their `scripts/route-budgets.js` budgets.
+ */
+const AccountMenu = dynamic(
+  () =>
+    import("@/components/navigation/AccountMenu").then(
+      (mod) => mod.AccountMenu,
+    ),
+  { ssr: false, loading: () => <AccountMenuSkeleton /> },
+);
 
 const SearchComposer = dynamic(
   () =>
@@ -176,7 +190,7 @@ function WishlistsButton() {
 
   return (
     <Link
-      href={signedIn ? "/dashboard/favorites" : "/auth/login"}
+      href={signedIn ? ACCOUNT_ROUTES.wishlists : loginHref(ACCOUNT_ROUTES.wishlists)}
       aria-label={`Wishlists${count ? `, ${count} saved` : ""}`}
       className="relative grid h-11 w-11 place-items-center rounded-full text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >

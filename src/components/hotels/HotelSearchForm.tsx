@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { hotelSearchHref, type HotelSearch } from "@/features/hotels";
-import { toIsoDate } from "@/features/listings";
+import { toIsoDate } from "@/features/listings/search/date-only";
 import DateRangePicker from "./search/datepicker";
 
 function initialRange(initial?: HotelSearch): DateRange | undefined {

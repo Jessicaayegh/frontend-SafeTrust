@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
   useSearchParams: jest.fn(),
+  usePathname: () => "/guest/suggestions",
 }));
 
 jest.mock("next/image", () => ({
@@ -65,16 +66,18 @@ describe("GuestSuggestionsPage – Message host", () => {
 
     expect(screen.getByText("2 units available")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Jardín de Heredia House/ }),
+      screen.getByRole("button", {
+        name: /^Select Jardín de Heredia House$/,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /La Estación Flat/ }),
+      screen.getByRole("button", { name: /^Select La Estación Flat$/ }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Jardín de Heredia House" }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Casa Níspero/ }),
+      screen.queryByRole("button", { name: /^Select Casa Níspero/ }),
     ).not.toBeInTheDocument();
   });
 

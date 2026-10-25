@@ -20,13 +20,14 @@ import HotelHeader from "@/components/listings/HotelHeader";
 import { PageContainer } from "@/components/layouts/PageContainer";
 import { getConversationIdForApartment } from "@/lib/conversationRoutes";
 import { APARTMENT_LISTINGS } from "@/lib/mockData/apartmentListings";
-import { WishlistAnnouncer, useSaveStay } from "@/features/listings";
+import { useSaveStay } from "@/features/listings/wishlist/useSaveStay";
+import { WishlistAnnouncer } from "@/features/listings/wishlist/WishlistAnnouncer";
 import { ListingPrice } from "@/components/listings/ListingPrice";
 import { GeolocationProvider } from "@/providers/GeolocationProvider";
 import { ListingLocation } from "@/features/listings/detail/ListingLocation";
 import { normalizeSearchText } from "@/lib/searchText";
 
-export default function GuestSuggestionsPage() {
+function GuestSuggestionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
@@ -427,5 +428,13 @@ export default function GuestSuggestionsPage() {
         </PageContainer>
       </div>
     </GeolocationProvider>
+  );
+}
+
+export default function GuestSuggestionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <GuestSuggestionsContent />
+    </Suspense>
   );
 }

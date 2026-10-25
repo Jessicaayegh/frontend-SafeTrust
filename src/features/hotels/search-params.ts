@@ -1,4 +1,4 @@
-import { isIsoDate } from "@/features/listings";
+import { isIsoDate } from "@/lib/date";
 
 export type HotelSearch = {
   where: string;

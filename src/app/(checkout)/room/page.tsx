@@ -3,19 +3,17 @@
 export const dynamic = "force-dynamic";
 
 import { useRef, useState } from "react";
-import {
-  RoomPhotos,
-  AdditionalRoomPhotos,
-  RoomDetailsCard,
-  RoomActionBar,
-  MobileBookingCard,
-  RoomBookingCard,
-  BookingConfirmation,
-  AmenitiesCard,
-  LocationCard,
-  HostCard,
-  PolicyCard,
-} from "@/components/rooms";
+import nextDynamic from "next/dynamic";
+import RoomPhotos from "@/components/rooms/gallery/RoomPhotos";
+import AdditionalRoomPhotos from "@/components/rooms/gallery/AdditionalRoomPhotos";
+import RoomDetailsCard from "@/components/rooms/cards/RoomDetailsCard";
+import RoomActionBar from "@/components/rooms/actions/RoomActionBar";
+import MobileBookingCard from "@/components/rooms/booking/MobileBookingCard";
+import { BookingConfirmation } from "@/components/rooms/booking/BookingConfirmation";
+import AmenitiesCard from "@/components/rooms/cards/AmenitiesCard";
+import LocationCard from "@/components/rooms/cards/LocationCard";
+import HostCard from "@/components/rooms/cards/HostCard";
+import PolicyCard from "@/components/rooms/cards/PolicyCard";
 import { usePathname, useRouter } from "next/navigation";
 import { parseISO } from "date-fns";
 import { NavigationHeader } from "@/components/navigation/NavigationHeader";
@@ -26,8 +24,21 @@ import { ListingMapDialog } from "@/components/rooms/ListingMapDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { directionsUrl, isValidCoordinate } from "@/lib/geo";
 import { loginHref } from "@/components/navigation/account-routes";
-import { EscrowProviders } from "@/providers/EscrowProviders";
 import type { BookingDetails } from "@/features/escrow/booking-escrow.machine";
+
+const RoomBookingPanel = nextDynamic(
+  () => import("@/components/rooms/booking/RoomBookingPanel"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        role="status"
+        aria-label="Loading booking"
+        className="h-[420px] animate-pulse rounded-lg bg-muted"
+      />
+    ),
+  },
+);
 
 const roomListing = getApartmentById("1");
 const additionalImages = roomListing.images.slice(1);
@@ -195,16 +206,14 @@ export default function RoomPage() {
                   onViewBooking={handleViewBooking}
                 />
               ) : (
-                <EscrowProviders>
-                  <RoomBookingCard
-                    roomId="room_001"
-                    listing={listing}
-                    basePrice={NIGHTLY_RATE}
-                    onBookingStart={handleBookingStart}
-                    onBookingComplete={handleBookingComplete}
-                    onBookingError={handleBookingError}
-                  />
-                </EscrowProviders>
+                <RoomBookingPanel
+                  roomId="room_001"
+                  listing={listing}
+                  basePrice={NIGHTLY_RATE}
+                  onBookingStart={handleBookingStart}
+                  onBookingComplete={handleBookingComplete}
+                  onBookingError={handleBookingError}
+                />
               )}
             </div>
           </div>

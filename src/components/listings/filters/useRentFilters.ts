@@ -6,11 +6,11 @@ import {
   APARTMENT_CATEGORIES,
   APARTMENT_LOCATIONS,
 } from "@/lib/mockData/apartmentListings";
+import { localToday } from "@/features/listings/search/date-only";
 import {
-  localToday,
   parseStaySearch,
   writeStaySearch,
-} from "@/features/listings";
+} from "@/features/listings/search/stay-search";
 
 /** Nightly USD. Keep max ≥ the most expensive demo listing (enforced by a test). */
 export const PRICE_BOUNDS = { min: 0, max: 200, step: 5 } as const;

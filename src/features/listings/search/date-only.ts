@@ -1,17 +1,10 @@
+import { isIsoDate } from "@/lib/date";
+
+export { isIsoDate };
+
 const pad = (n: number) => String(n).padStart(2, "0");
 const parts = (iso: string) =>
   iso.split("-").map(Number) as [number, number, number];
-
-export function isIsoDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [y, m, d] = parts(value);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return (
-    date.getUTCFullYear() === y &&
-    date.getUTCMonth() === m - 1 &&
-    date.getUTCDate() === d
-  );
-}
 
 export const isIsoMonth = (value: string) =>
   /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
