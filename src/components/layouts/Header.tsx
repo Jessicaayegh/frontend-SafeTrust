@@ -1,15 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, Menu } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { SearchHeader } from "@/components/layouts/SearchHeader";
 import { useWallet } from "@/hooks/useWallet";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { AccountMenu } from "@/components/navigation/AccountMenu";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { AccountMenuSkeleton } from "@/components/navigation/AccountMenuSkeleton";
+
+/**
+ * Code-split: the menu brings in the Radix dropdown and Firebase auth state,
+ * which would otherwise land in the header's first-load JS and push the
+ * marketing/app routes past their `scripts/route-budgets.js` budgets.
+ */
+const AccountMenu = dynamic(
+  () =>
+    import("@/components/navigation/AccountMenu").then(
+      (mod) => mod.AccountMenu,
+    ),
+  { ssr: false, loading: () => <AccountMenuSkeleton /> },
+);
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -18,7 +34,14 @@ interface HeaderProps {
 export const Header = ({ onMenuClick }: HeaderProps) => {
   const router = useRouter();
   const { address: connectedAddress } = useWallet();
-  const { user } = useCurrentUser();
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setSignedIn(user !== null);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <>
@@ -59,13 +82,13 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
               <SearchHeader />
             </div>
 
-            {/* Right: dashboard | bell | wallet | account menu */}
+            {/* Right: dashboard | bell | wallet | account menu — matching Figma order */}
             <div className="flex items-center gap-1 shrink-0 sm:gap-3">
               <div className="[&_svg]:hidden sm:[&_svg]:block">
                 <ThemeToggle />
               </div>
 
-              {user ? (
+              {signedIn ? (
                 <Link
                   href="/dashboard"
                   className="hidden rounded-full px-2 py-1 text-sm font-medium text-gray-700 md:inline-flex transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
@@ -87,7 +110,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
                 <span
                   data-testid="header-wallet-address"
                   title={connectedAddress}
-                  className="hidden font-mono text-xs text-muted-foreground md:block"
+                  className="hidden md:block text-xs font-mono text-muted-foreground"
                 >
                   {connectedAddress.slice(0, 6)}…{connectedAddress.slice(-4)}
                 </span>

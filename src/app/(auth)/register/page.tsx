@@ -1,8 +1,7 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
 import Register from "@/components/auth/Register";
 
-export const metadata: Metadata = { title: "Create account" };
+export const dynamic = "force-dynamic";
 
 export default function Page() {
   return (

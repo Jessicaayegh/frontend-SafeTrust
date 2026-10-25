@@ -1,29 +1,26 @@
 import { cn } from "@/lib/utils";
 
-/**
- * Shared dashboard nav item styles.
- *
- * The selected indicator is a `before:` bar that is tied to `aria-current` so
- * the markup stays the source of truth. It only scales when motion is safe;
- * under reduced motion it simply appears.
- */
-export const navItemClassName = cn(
-  "group relative flex w-full items-center gap-3 rounded-lg p-2",
-  "transition-[background-color,color,box-shadow] duration-150 ease-out",
-  "before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1",
-  "before:-translate-y-1/2 before:scale-y-50 before:rounded-full before:bg-sky-600 before:opacity-0",
-  "aria-[current=page]:before:scale-y-100 aria-[current=page]:before:opacity-100",
-  "motion-safe:before:transition-[opacity,transform] motion-safe:before:duration-200 motion-safe:before:ease-out",
-  "bg-sky-50/70 dark:bg-transparent dark:text-gray-300 dark:before:bg-sky-400",
-);
+/** Shared item style for the main and profile sidebars (TH-01 nav tokens). */
+export const navItemClass = (active: boolean) =>
+  cn(
+    "group relative flex w-full items-center gap-3 rounded-lg p-2 text-sm transition-colors duration-150",
+    // outline-none is a transparent outline in Tailwind 3, so forced-colors still shows focus
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nav-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    active
+      ? [
+          "bg-nav-active font-medium text-nav-active-foreground shadow-sm",
+          "dark:shadow-none",
+          // non-colour cue: a 3px bar on the left edge
+          "before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-nav-indicator",
+          "forced-colors:before:bg-[Highlight]",
+        ]
+      : "text-foreground/70 hover:bg-nav-hover hover:text-nav-hover-foreground dark:text-slate-300",
+  );
 
-export const navItemHoverClassName = cn(
-  "hover:bg-accent hover:text-accent-foreground",
-  "light:hover:bg-white/70 light:hover:shadow-sm",
-  "dark:hover:bg-accent dark:hover:text-accent-foreground",
-);
-
-export const navItemActiveClassName = cn(
-  "bg-accent text-accent-foreground ring-1 ring-sky-300",
-  "dark:bg-accent dark:text-accent-foreground dark:ring-sky-700",
-);
+export const navIconClass = (active: boolean) =>
+  cn(
+    "h-5 w-5 shrink-0",
+    active
+      ? "text-nav-active-icon"
+      : "text-muted-foreground group-hover:text-nav-hover-foreground",
+  );

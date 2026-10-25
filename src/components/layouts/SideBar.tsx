@@ -7,11 +7,7 @@ import { LogoutButton } from "@/components/auth/LogoutButton";
 import { UnreadBadge } from "@/components/messages/UnreadBadge";
 import { DemoBadge } from "@/components/ui/demo-badge";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import {
-  navItemActiveClassName,
-  navItemClassName,
-  navItemHoverClassName,
-} from "./nav-item-styles";
+import { navIconClass, navItemClass } from "./nav-item-styles";
 import { NAV_ITEMS, isActive } from "./nav-items";
 
 interface SideBarProps {
@@ -37,13 +33,17 @@ export function SideBar({
   return (
     <div
       className={cn(
-        "fixed top-16 flex flex-col h-[calc(100vh-4rem)] bg-background border-r motion-safe:transition-transform motion-safe:duration-300 z-40 dark:bg-gray-900 dark:border-gray-700",
+        "fixed top-16 z-40 flex h-[calc(100vh-4rem)] flex-col border-r border-border motion-safe:transition-transform motion-safe:duration-300",
         variant === "drawer"
           ? cn(
-              "left-0 w-64 md:hidden transform",
+              // The drawer overlays content, so it stays opaque.
+              "left-0 w-64 transform bg-background md:hidden",
               isOpen ? "translate-x-0" : "-translate-x-full",
             )
-          : "hidden md:flex md:w-16 lg:w-48 left-0",
+          : cn(
+              "left-0 hidden md:flex md:w-16 lg:w-48",
+              "bg-background/80 backdrop-blur-md supports-[not(backdrop-filter:blur(0))]:bg-background dark:bg-slate-950/90",
+            ),
         className,
       )}
     >
@@ -58,13 +58,9 @@ export function SideBar({
                 href={item.href}
                 onClick={onClose}
                 aria-current={active ? "page" : undefined}
-                className={cn(
-                  navItemClassName,
-                  !active && navItemHoverClassName,
-                  active && navItemActiveClassName,
-                )}
+                className={navItemClass(active)}
               >
-                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <Icon className={navIconClass(active)} aria-hidden="true" />
                 <span className="md:hidden lg:block">{item.label}</span>
                 {item.demo && (
                   <DemoBadge className="ml-auto px-1.5 py-0 text-[10px] md:hidden lg:inline-flex" />

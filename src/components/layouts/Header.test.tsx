@@ -2,7 +2,29 @@ import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Header } from "./Header";
 import { useRouter } from "next/navigation";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { onAuthStateChanged } from "firebase/auth";
+import type { CurrentUser } from "@/hooks/useCurrentUser";
+
+let mockUser: CurrentUser = null;
+let mockAuthLoading = false;
+
+jest.mock("@/hooks/useCurrentUser", () => ({
+  useCurrentUser: () => ({ user: mockUser, loading: mockAuthLoading }),
+}));
+
+jest.mock("@/components/auth/LogoutButton", () => {
+  const { forwardRef, createElement } = jest.requireActual(
+    "react",
+  ) as typeof import("react");
+  // Must forward its ref: Radix menu items track their DOM node for focus.
+  const MockLogoutButton = forwardRef<
+    HTMLButtonElement,
+    import("react").ComponentPropsWithoutRef<"button">
+  >((props, ref) =>
+    createElement("button", { type: "button", ref, ...props }, "Log out"),
+  );
+  return { LogoutButton: MockLogoutButton };
+});
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
@@ -19,14 +41,12 @@ jest.mock("next/image", () => ({
   ),
 }));
 
-jest.mock("@/hooks/useCurrentUser", () => ({ useCurrentUser: jest.fn() }));
-
-jest.mock("@/components/navigation/AccountMenu", () => ({
-  AccountMenu: () => <div data-testid="account-menu" />,
+jest.mock("@/lib/firebase", () => ({
+  auth: {},
 }));
 
-jest.mock("@/hooks/useWallet", () => ({
-  useWallet: () => ({ address: null }),
+jest.mock("firebase/auth", () => ({
+  onAuthStateChanged: jest.fn(),
 }));
 
 jest.mock("@/components/layouts/SearchHeader", () => ({
@@ -37,34 +57,53 @@ jest.mock("@/components/ui/ThemeToggle", () => ({
   ThemeToggle: () => <div data-testid="theme-toggle" />,
 }));
 
-const signedInAs = (displayName: string) =>
-  (useCurrentUser as jest.Mock).mockReturnValue({
-    user: { uid: "u-1", email: null, displayName },
-    loading: false,
-  });
-
 describe("Header", () => {
   const mockPush = jest.fn();
+  const mockUnsubscribe = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUser = null;
+    mockAuthLoading = false;
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
-    (useCurrentUser as jest.Mock).mockReturnValue({
-      user: null,
-      loading: false,
+    (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
+      callback(null);
+      return mockUnsubscribe;
     });
   });
 
-  it("renders the shared account menu", () => {
+  it("renders the signed-out account menu when there is no user", async () => {
     render(<Header />);
-    expect(screen.getByTestId("account-menu")).toBeInTheDocument();
+    // The menu is code-split out of the header's first-load JS.
+    const trigger = await screen.findByTestId("header-account-menu");
+    expect(trigger).toHaveAccessibleName("Account menu");
+    expect(trigger).not.toBeDisabled();
+  });
+
+  it("shows the verified user's name and initials in the account menu", async () => {
+    mockUser = {
+      uid: "user-1",
+      email: "john@example.com",
+      displayName: "John Doe",
+      roles: ["guest"],
+      activeRole: "guest",
+    };
+
+    render(<Header />);
     expect(
-      screen.queryByRole("button", { name: /go to profile/i }),
-    ).not.toBeInTheDocument();
+      await screen.findByTestId("header-account-menu"),
+    ).toHaveAccessibleName("Account menu for John Doe");
+    expect(screen.getByTestId("header-account-initials")).toHaveTextContent(
+      "JD",
+    );
   });
 
   it("links a signed-in user to the dashboard", () => {
-    signedInAs("John Doe");
+    (onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
+      callback({ displayName: "John Doe" });
+      return mockUnsubscribe;
+    });
+
     render(<Header />);
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
       "href",
@@ -79,10 +118,58 @@ describe("Header", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("links Profile to the dashboard profile for a signed-in user", async () => {
+    mockUser = {
+      uid: "user-1",
+      email: "john@example.com",
+      displayName: "John Doe",
+      roles: ["guest"],
+      activeRole: "guest",
+    };
+    render(<Header />);
+
+    fireEvent.keyDown(await screen.findByTestId("header-account-menu"), {
+      key: "Enter",
+    });
+
+    expect(screen.getByRole("menuitem", { name: "Profile" })).toHaveAttribute(
+      "href",
+      "/dashboard/profile",
+    );
+    expect(
+      screen.getByRole("menuitem", { name: "Log out" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Log in" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sends a signed-out visitor to login with a return path", async () => {
+    render(<Header />);
+
+    fireEvent.keyDown(await screen.findByTestId("header-account-menu"), {
+      key: "Enter",
+    });
+
+    expect(screen.getByRole("menuitem", { name: "Messages" })).toHaveAttribute(
+      "href",
+      "/login?redirect=%2Fdashboard%2Fmessages",
+    );
+    expect(
+      screen.queryByRole("menuitem", { name: "Log out" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("navigates to /dashboard/notifications when notification bell is clicked", () => {
     render(<Header />);
     const bellButton = screen.getByRole("button", { name: /notifications/i });
     fireEvent.click(bellButton);
     expect(mockPush).toHaveBeenCalledWith("/dashboard/notifications");
+  });
+
+  it("unsubscribes onAuthStateChanged on unmount", () => {
+    const { unmount } = render(<Header />);
+    unmount();
+    expect(mockUnsubscribe).toHaveBeenCalled();
   });
 });

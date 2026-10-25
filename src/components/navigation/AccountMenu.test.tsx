@@ -1,103 +1,186 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AccountMenu } from "./AccountMenu";
-import { useCurrentUser, type CurrentUser } from "@/hooks/useCurrentUser";
+import type { CurrentUser } from "@/hooks/useCurrentUser";
 
-const mockLogout = jest.fn();
+let mockUser: CurrentUser = null;
+let mockAuthLoading = false;
 
-jest.mock("@/hooks/useCurrentUser", () => ({ useCurrentUser: jest.fn() }));
-jest.mock("@/components/auth/LogoutButton", () => ({
-  useLogout: () => mockLogout,
+jest.mock("@/hooks/useCurrentUser", () => ({
+  useCurrentUser: () => ({ user: mockUser, loading: mockAuthLoading }),
 }));
 
-const signedIn: NonNullable<CurrentUser> = {
-  uid: "u-1",
-  email: "ana.guest@safetrust.test",
-  displayName: "Ana Guest",
-  roles: ["guest"],
-  activeRole: "guest",
+// The real LogoutButton renders here (it must survive `asChild`), it just
+// must not navigate during tests.
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
+const trigger = () => screen.getByTestId("header-account-menu");
+
+const openMenu = () => {
+  fireEvent.keyDown(trigger(), { key: "Enter" });
 };
 
-function renderAs(user: CurrentUser, loading = false) {
-  (useCurrentUser as jest.Mock).mockReturnValue({ user, loading });
-  render(<AccountMenu />);
-}
+describe("AccountMenu signed out", () => {
+  beforeEach(() => {
+    mockUser = null;
+    mockAuthLoading = false;
+  });
 
-const openMenu = (name: RegExp) =>
-  fireEvent.keyDown(screen.getByRole("button", { name }), { key: "Enter" });
+  it("labels the trigger for guests and offers the six signed-out items", () => {
+    render(<AccountMenu />);
+    const button = trigger();
+    expect(button).toHaveAccessibleName("Account menu");
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute("aria-haspopup", "menu");
 
-describe("AccountMenu", () => {
-  beforeEach(() => jest.clearAllMocks());
+    openMenu();
 
-  it("sends signed-out visitors through login for protected items", () => {
-    renderAs(null);
-    openMenu(/^account menu$/i);
-
-    const expected = {
-      Messages: "/login?redirect=%2Fdashboard%2Fmessages",
-      Wishlists: "/login?redirect=%2Fdashboard%2Ffavorites",
-      Notifications: "/login?redirect=%2Fdashboard%2Fnotifications",
-      Profile: "/login?redirect=%2Fdashboard%2Fprofile",
-      "Log in": "/login?redirect=%2Fdashboard%2Fprofile",
-      "Sign up": "/register?redirect=%2Fdashboard%2Fprofile",
-    };
-    for (const [name, href] of Object.entries(expected)) {
-      expect(screen.getByRole("menuitem", { name })).toHaveAttribute(
-        "href",
-        href,
-      );
-    }
+    expect(screen.getByRole("menuitem", { name: "Messages" })).toHaveAttribute(
+      "href",
+      "/login?redirect=%2Fdashboard%2Fmessages",
+    );
+    expect(screen.getByRole("menuitem", { name: "Wishlists" })).toHaveAttribute(
+      "href",
+      "/login?redirect=%2Fdashboard%2Ffavorites",
+    );
     expect(
-      screen.queryByRole("menuitem", { name: /log out/i }),
+      screen.getByRole("menuitem", { name: "Notifications" }),
+    ).toHaveAttribute("href", "/login?redirect=%2Fdashboard%2Fnotifications");
+    expect(screen.getByRole("menuitem", { name: "Profile" })).toHaveAttribute(
+      "href",
+      "/guest/profile",
+    );
+    expect(screen.getByRole("menuitem", { name: "Log in" })).toHaveAttribute(
+      "href",
+      "/login?redirect=%2Fdashboard%2Fprofile",
+    );
+    expect(screen.getByRole("menuitem", { name: "Sign up" })).toHaveAttribute(
+      "href",
+      "/register?redirect=%2Fdashboard%2Fprofile",
+    );
+    expect(
+      screen.queryByRole("menuitem", { name: "Log out" }),
     ).not.toBeInTheDocument();
   });
 
-  it("shows initials, direct links and Log out when signed in", () => {
-    renderAs(signedIn);
-    const trigger = screen.getByRole("button", {
-      name: "Account menu for Ana Guest",
-    });
-    expect(trigger).toHaveTextContent("AG");
-    openMenu(/account menu for ana guest/i);
+  it("shows the guest avatar instead of anyone's initials", () => {
+    render(<AccountMenu />);
+    expect(screen.getByTestId("header-account-guest")).toBeInTheDocument();
+    expect(screen.queryByTestId("header-account-initials")).toBeNull();
+  });
+});
+
+describe("AccountMenu signed in", () => {
+  beforeEach(() => {
+    mockUser = {
+      uid: "user-1",
+      email: "ana.guest@safetrust.test",
+      displayName: "Ana Guest",
+      roles: ["guest"],
+      activeRole: "guest",
+    };
+    mockAuthLoading = false;
+  });
+
+  it("names the trigger after the verified user and shows their initials", () => {
+    render(<AccountMenu />);
+    expect(trigger()).toHaveAccessibleName("Account menu for Ana Guest");
+    expect(screen.getByTestId("header-account-initials")).toHaveTextContent(
+      "AG",
+    );
+  });
+
+  it("links straight to the protected routes and offers Log out only", () => {
+    render(<AccountMenu />);
+    openMenu();
 
     expect(screen.getByRole("menuitem", { name: "Messages" })).toHaveAttribute(
       "href",
       "/dashboard/messages",
     );
+    expect(screen.getByRole("menuitem", { name: "Wishlists" })).toHaveAttribute(
+      "href",
+      "/dashboard/favorites",
+    );
+    expect(
+      screen.getByRole("menuitem", { name: "Notifications" }),
+    ).toHaveAttribute("href", "/dashboard/notifications");
     expect(screen.getByRole("menuitem", { name: "Profile" })).toHaveAttribute(
       "href",
       "/dashboard/profile",
     );
     expect(
-      screen.queryByRole("menuitem", { name: /log in|sign up/i }),
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("menuitem", { name: "Log out" }));
-    expect(mockLogout).toHaveBeenCalled();
-  });
-
-  it("falls back to the email for the label and initials", () => {
-    renderAs({ ...signedIn, displayName: null });
+      screen.getByRole("menuitem", { name: "Log out" }),
+    ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", {
-        name: "Account menu for ana.guest@safetrust.test",
-      }),
-    ).toHaveTextContent("AS");
+      screen.queryByRole("menuitem", { name: "Log in" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: "Sign up" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("is disabled and shows no name while auth is loading", () => {
-    renderAs(null, true);
-    const trigger = screen.getByRole("button", { name: /^account menu$/i });
-    expect(trigger).toBeDisabled();
-    expect(trigger).not.toHaveTextContent(/\w/);
+  it("falls back to the e-mail initials for a user without a name", () => {
+    mockUser = {
+      uid: "user-1",
+      email: "ana.guest@safetrust.test",
+      displayName: null,
+      roles: ["guest"],
+      activeRole: "guest",
+    };
+    render(<AccountMenu />);
+    expect(trigger()).toHaveAccessibleName(
+      "Account menu for ana.guest@safetrust.test",
+    );
+    // "ana.guest@safetrust.test" -> first letters of "ana.guest" and
+    // "safetrust.test".
+    expect(screen.getByTestId("header-account-initials")).toHaveTextContent(
+      "AS",
+    );
+  });
+});
+
+describe("AccountMenu while auth resolves", () => {
+  beforeEach(() => {
+    mockUser = null;
+    mockAuthLoading = true;
   });
 
-  it("closes on Escape", () => {
-    renderAs(null);
-    openMenu(/^account menu$/i);
-    expect(screen.getByRole("menu")).toBeInTheDocument();
+  it("disables the trigger so no identity can flash", () => {
+    render(<AccountMenu />);
+    expect(trigger()).toBeDisabled();
+    // A generic guest glyph is fine; nobody's name or initials may appear.
+    expect(screen.queryByTestId("header-account-initials")).toBeNull();
+    expect(trigger()).toHaveAccessibleName("Account menu");
+  });
+});
 
-    fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
-    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+describe("AccountMenu keyboard", () => {
+  beforeEach(() => {
+    mockUser = null;
+    mockAuthLoading = false;
+  });
+
+  it("opens with Enter, closes on Escape and restores focus to the trigger", async () => {
+    render(<AccountMenu />);
+    const button = trigger();
+    button.focus();
+
+    fireEvent.keyDown(button, { key: "Enter" });
+    expect(await screen.findByRole("menu")).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() =>
+      expect(button).not.toHaveAttribute("data-state", "open"),
+    );
+    await waitFor(() => expect(button).toHaveFocus());
+  });
+
+  it("opens with Space as well", async () => {
+    render(<AccountMenu />);
+    fireEvent.keyDown(trigger(), { key: " " });
+    expect(await screen.findByRole("menu")).toBeInTheDocument();
   });
 });

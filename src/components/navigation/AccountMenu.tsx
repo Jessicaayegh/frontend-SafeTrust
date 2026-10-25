@@ -6,7 +6,6 @@ import {
   CircleUserRound,
   Heart,
   LogIn,
-  LogOut,
   Menu,
   MessageSquare,
   UserPlus,
@@ -16,15 +15,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useLogout } from "@/components/auth/LogoutButton";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { ACCOUNT_ROUTES as R, loginHref, registerHref } from "./account-routes";
-
-const ITEM_CLASS = "min-h-11 cursor-pointer gap-3 px-3";
 
 const initials = (name: string | null, email: string | null) =>
   (name ?? email ?? "?")
@@ -34,10 +30,20 @@ const initials = (name: string | null, email: string | null) =>
     .map((part) => part[0]!.toUpperCase())
     .join("");
 
-/** Account dropdown shared by the guest and dashboard headers. */
+const itemIcon = "h-4 w-4 shrink-0";
+
+/**
+ * Account menu shared by the guest header (HotelHeader) and the dashboard
+ * header: Messages, Wishlists, Notifications and Profile, plus Log in /
+ * Sign up when signed out and Log out when signed in.
+ *
+ * Identity comes from `useCurrentUser` (verified Firebase ID-token claims) and
+ * the trigger is disabled while auth resolves so a visitor never sees a flash
+ * of somebody else's name. Signed-out Profile opens the public
+ * `/guest/profile` landing (issue #655).
+ */
 export function AccountMenu() {
   const { user, loading } = useCurrentUser();
-  const logout = useLogout();
   const protectedHref = (href: string) => (user ? href : loginHref(href));
 
   return (
@@ -49,79 +55,68 @@ export function AccountMenu() {
             : "Account menu"
         }
         disabled={loading}
-        data-testid="account-menu-trigger"
-        className="flex min-h-11 items-center gap-2 rounded-full border border-border bg-background px-2 py-1 text-foreground transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+        data-testid="header-account-menu"
+        className="flex min-h-11 items-center gap-2 rounded-full border border-border px-2 py-1 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Menu className="h-4 w-4" aria-hidden="true" />
+        <Menu aria-hidden="true" className="h-4 w-4" />
         {user ? (
           <span
             aria-hidden="true"
+            data-testid="header-account-initials"
             className="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-foreground"
           >
             {initials(user.displayName, user.email)}
           </span>
         ) : (
           <CircleUserRound
-            className="h-8 w-8 text-muted-foreground"
             aria-hidden="true"
+            data-testid="header-account-guest"
+            className="h-8 w-8 text-muted-foreground"
           />
         )}
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-60">
-        {user && (
-          <>
-            <DropdownMenuLabel className="truncate px-3 font-semibold">
-              {user.displayName ?? user.email}
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-          </>
-        )}
-        <DropdownMenuItem asChild className={ITEM_CLASS}>
+        <DropdownMenuItem asChild>
           <Link href={protectedHref(R.messages)}>
-            <MessageSquare className="h-4 w-4" aria-hidden="true" />
+            <MessageSquare aria-hidden="true" className={itemIcon} />
             Messages
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className={ITEM_CLASS}>
+        <DropdownMenuItem asChild>
           <Link href={protectedHref(R.wishlists)}>
-            <Heart className="h-4 w-4" aria-hidden="true" />
+            <Heart aria-hidden="true" className={itemIcon} />
             Wishlists
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className={ITEM_CLASS}>
+        <DropdownMenuItem asChild>
           <Link href={protectedHref(R.notifications)}>
-            <Bell className="h-4 w-4" aria-hidden="true" />
+            <Bell aria-hidden="true" className={itemIcon} />
             Notifications
           </Link>
         </DropdownMenuItem>
-        {/* Signed-out Profile goes through login until the public guest profile page exists. */}
-        <DropdownMenuItem asChild className={ITEM_CLASS}>
-          <Link href={protectedHref(R.profile)}>
-            <UserRound className="h-4 w-4" aria-hidden="true" />
+        <DropdownMenuItem asChild>
+          <Link href={user ? R.profile : R.guestProfile}>
+            <UserRound aria-hidden="true" className={itemIcon} />
             Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {user ? (
-          <DropdownMenuItem
-            className={`${ITEM_CLASS} text-destructive focus:text-destructive`}
-            onSelect={() => void logout()}
-          >
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            Log out
+          <DropdownMenuItem asChild>
+            <LogoutButton />
           </DropdownMenuItem>
         ) : (
           <>
-            <DropdownMenuItem asChild className={ITEM_CLASS}>
+            <DropdownMenuItem asChild>
               <Link href={loginHref(R.profile)}>
-                <LogIn className="h-4 w-4" aria-hidden="true" />
+                <LogIn aria-hidden="true" className={itemIcon} />
                 Log in
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className={ITEM_CLASS}>
+            <DropdownMenuItem asChild>
               <Link href={registerHref(R.profile)}>
-                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                <UserPlus aria-hidden="true" className={itemIcon} />
                 Sign up
               </Link>
             </DropdownMenuItem>
