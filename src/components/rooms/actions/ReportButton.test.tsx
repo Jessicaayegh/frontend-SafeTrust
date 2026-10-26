@@ -125,7 +125,6 @@ describe("ReportButton", () => {
           },
         ),
     );
-    mockSubmit.mockResolvedValueOnce({ id: "report-1", status: "open" });
     render(<ReportButton listingId={validId} listingName="Apartment" />);
     fireEvent.click(screen.getByRole("button", { name: "Report this listing" }));
     fireEvent.click(screen.getByLabelText("Safety concern"));
@@ -138,7 +137,7 @@ describe("ReportButton", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Report this listing" }));
     expect(screen.getByLabelText("Safety concern")).toBeChecked();
-    expect(screen.getByRole("button", { name: "Submit Report" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Sending/ })).toBeDisabled();
 
     await act(async () => {
       rejectFirst(new TypeError("offline"));
@@ -146,6 +145,7 @@ describe("ReportButton", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Check your connection and try again.",
     );
+    mockSubmit.mockResolvedValueOnce({ id: "report-1", status: "open" });
     fireEvent.click(screen.getByRole("button", { name: "Submit Report" }));
     await screen.findByText(
       "Thanks. We've received your report and our team will review it.",
