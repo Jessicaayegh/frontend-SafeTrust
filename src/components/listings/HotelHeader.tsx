@@ -2,17 +2,37 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import {
-  Bell,
-  ChevronDown,
-  CircleUserRound,
-  Grid2X2,
-  Heart,
-  Lightbulb,
-  Search,
-} from "lucide-react";
+import { AccountMenuSkeleton } from "@/components/navigation/AccountMenuSkeleton";
+import { ChevronDown, Grid2X2, Heart, Lightbulb } from "lucide-react";
+
+/**
+ * Code-split: the menu brings in the Radix dropdown and Firebase auth state,
+ * which would otherwise land in this header's first-load JS and push the
+ * marketing/app routes past their `scripts/route-budgets.js` budgets.
+ */
+const AccountMenu = dynamic(
+  () =>
+    import("@/components/navigation/AccountMenu").then(
+      (mod) => mod.AccountMenu,
+    ),
+  { ssr: false, loading: () => <AccountMenuSkeleton /> },
+);
+
+const SearchComposer = dynamic(
+  () =>
+    import("@/features/listings/search/SearchComposer").then(
+      (module) => module.SearchComposer,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-11 min-w-0 flex-1 rounded-full border border-border bg-muted/60" />
+    ),
+  },
+);
 
 interface HotelHeaderProps {
   showHostSwitch?: boolean;
@@ -135,17 +155,9 @@ function HotelHeaderContent({ showHostSwitch }: HotelHeaderProps) {
           </span>
         </Link>
 
-        <div className="order-3 mx-0 flex min-w-0 w-full items-center rounded-full border border-border bg-muted/60 px-2 py-1.5 sm:order-none sm:mx-auto sm:w-auto sm:flex-1 sm:max-w-md">
+        <div className="order-3 mx-0 flex min-w-0 w-full items-center gap-2 sm:order-none sm:mx-auto sm:w-auto sm:flex-1 sm:max-w-md">
           <RentDropdown />
-          <div className="mx-3 h-6 w-px bg-gray-300 dark:bg-slate-600" />
-          <span className="min-w-0 truncate text-sm text-gray-600 dark:text-gray-300">
-            City, province or neighborhood
-          </span>
-          <Search
-            aria-hidden="true"
-            data-testid="header-search-icon"
-            className="ml-auto h-4 w-4 shrink-0 text-gray-600 dark:text-gray-300"
-          />
+          <SearchComposer />
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-5">
@@ -160,24 +172,7 @@ function HotelHeaderContent({ showHostSwitch }: HotelHeaderProps) {
           <div className="hidden md:block">
             <ThemeToggle />
           </div>
-          <div className="relative">
-            <Bell
-              aria-hidden="true"
-              data-testid="header-notification-icon"
-              className="h-4 w-4 text-gray-900 dark:text-white"
-            />
-            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-orange-500" />
-          </div>
-          <span className="hidden text-sm font-semibold text-foreground lg:block">
-            Randall Valenciano
-          </span>
-          <div className="grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-800">
-            <CircleUserRound
-              aria-hidden="true"
-              data-testid="header-user-icon"
-              className="h-5 w-5 text-gray-900 dark:text-white"
-            />
-          </div>
+          <AccountMenu />
         </div>
       </div>
     </header>

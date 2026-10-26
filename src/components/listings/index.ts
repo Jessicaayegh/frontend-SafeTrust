@@ -15,10 +15,10 @@ export {
   CategoryFilterRow,
   CategoryChip,
 } from "./destinations/CategoryFilterRow";
+export { SortMenu } from "./SortMenu";
 export type {
   ApartmentAmenitySummary,
   ApartmentListing,
   ApartmentOwner,
-  HotelSearchResult,
 } from "@/types/hotel";
 export type * from "@/types/hotel-booking";

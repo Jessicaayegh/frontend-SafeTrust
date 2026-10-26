@@ -25,7 +25,6 @@ import { applyRememberMe } from "@/lib/auth/persistence";
 import { setSessionCookie } from "@/lib/auth/session";
 import { resolveRedirectPath } from "@/lib/auth/redirect";
 import { toast } from "sonner";
-import { WalletProviderScoped } from "@/providers/WalletProviderScoped";
 
 // Lazy-load FreighterSignInButton — pulls in stellar-wallets-kit.
 // Only needed when the user interacts with wallet sign-in.
@@ -58,6 +57,12 @@ function LoginForm() {
     () => resolveRedirectPath(searchParams.get("redirect")),
     [searchParams],
   );
+
+  // Carry a (validated) return path across to the register form so switching
+  // between login and sign-up never loses where the user was going.
+  const keep = searchParams.get("redirect")
+    ? `?redirect=${encodeURIComponent(getSafeRedirect())}`
+    : "";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -255,7 +260,7 @@ function LoginForm() {
             <AuthMotionItem className="text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link
-                href="/register"
+                href={`/register${keep}`}
                 className="text-orange-700 dark:text-orange-400 underline hover:no-underline"
               >
                 Register here
@@ -274,14 +279,6 @@ function LoginForm() {
   );
 }
 
-/**
- * Login wraps the form with a scoped WalletProvider so that
- * stellar-wallets-kit is contained to this subtree only.
- */
 export default function Login() {
-  return (
-    <WalletProviderScoped>
-      <LoginForm />
-    </WalletProviderScoped>
-  );
+  return <LoginForm />;
 }
