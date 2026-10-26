@@ -134,7 +134,7 @@ test("searching from suggestions retains the listing filters", async ({
   page,
 }) => {
   await page.goto(
-    "/guest/suggestions?categories=Family&bedrooms=2&min=50&max=200",
+    "/guest/suggestions?categories=Family&bedrooms=3&min=50&max=200",
   );
   await openComposer(page);
   await page
@@ -148,16 +148,16 @@ test("searching from suggestions retains the listing filters", async ({
   const applied = new URL(page.url());
   expect(applied.pathname).toBe("/guest/suggestions");
   expect(applied.searchParams.get("categories")).toBe("Family");
-  expect(applied.searchParams.get("bedrooms")).toBe("2");
+  expect(applied.searchParams.get("bedrooms")).toBe("3");
   expect(applied.searchParams.get("min")).toBe("50");
   expect(applied.searchParams.get("max")).toBe("200");
-  await expect(page.getByText("2 units available")).toBeVisible();
+  await expect(page.getByText("1 unit available")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Jardín de Heredia House" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: /Casa Níspero/ }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Casa Níspero/ })).toHaveCount(
+    0,
+  );
 });
 
 test("Nearby requests location only after selection and keeps filters while sorting", async ({

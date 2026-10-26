@@ -51,8 +51,7 @@ form variant that is not rendered by the product.
 
 `ReactQueryClientProvider` was removed from this directory. React Query is
 provided once by `src/providers/QueryProvider.tsx`. The guest checkout uses the
-shared escrow service and does not mount a second query or wallet provider.
+shared escrow flow and does not mount a second query or wallet provider.
 
-The root `AppProviders` owns React Query. WalletProviderScoped retains the
-vendored context API on wallet/escrow routes, backed by the same Zustand store;
-it does not create a second wallet store or initialize the kit.
+The root `AppProviders` owns React Query. Escrow routes scope Trustless Work
+through `EscrowProviders` and use the shared wallet store.
