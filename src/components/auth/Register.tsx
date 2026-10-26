@@ -7,13 +7,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { auth } from "@/lib/firebase";
+import { sendVerification } from "@/lib/auth/email-verification";
+import { resolveRedirectPath } from "@/lib/auth/redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { setSessionCookie } from "@/lib/auth/session";
-import { resolveRedirectPath } from "@/lib/auth/redirect";
 import Illustration from "@/components/auth/ui/Illustration";
 import {
   AuthMotion,
@@ -47,6 +48,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const safeRedirect = resolveRedirectPath(searchParams.get("redirect"));
   // Validated return path: external // and /\ targets fall back to the
   // default, exactly like the login form does.
   const redirectTo = resolveRedirectPath(
@@ -88,6 +90,14 @@ export default function RegisterPage() {
         displayName: `${firstName} ${lastName}`.trim(),
       });
 
+      // Firebase hosts the verification link; a failure here must not fail
+      // registration — /verify-email offers "Resend email".
+      try {
+        await sendVerification(credential.user, safeRedirect);
+      } catch {
+        /* the verify page offers Resend */
+      }
+
       const token = await credential.user.getIdToken();
 
       // Step 2 — sync user to backend-SafeTrust (non-blocking)
@@ -119,13 +129,11 @@ export default function RegisterPage() {
       setSessionCookie(token);
 
       toast.success("Account created successfully!", {
-        description: "Please sign in with your new credentials.",
+        description: "Please verify your email to continue.",
         duration: 4000,
       });
 
-      // Keep the return path so the login after sign-up lands on the page
-      // the user originally asked for.
-      router.push(`/login${keep}`);
+      router.push(`/verify-email?redirect=${encodeURIComponent(safeRedirect)}`);
     } catch (err: unknown) {
       if (err instanceof FirebaseError) {
         toast.error(
