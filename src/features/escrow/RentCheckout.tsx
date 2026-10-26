@@ -9,6 +9,7 @@ import { CustomDateRangePicker } from "@/components/rooms/booking/CustomDateRang
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGlobalAuthenticationStore } from "@/core/store/data";
 import { useWallet } from "@/hooks/useWallet";
+import { formatPrice } from "@/lib/format";
 import { EscrowProviders } from "@/providers/EscrowProviders";
 import { BookingEscrowCheckout } from "./BookingEscrowCheckout";
 import { computeBookingPrice } from "./pricing";
@@ -55,10 +56,9 @@ export function RentCheckout({
       checkIn: format(dateRange.from, "yyyy-MM-dd"),
       checkOut: format(dateRange.to, "yyyy-MM-dd"),
       price: computeBookingPrice({
-        nightlyRate: listing.price / 30,
+        nightlyRate: listing.price,
         nights,
         guests: 1,
-        subtotalOverride: (listing.price * nights) / 30,
       }),
     };
   }, [dateRange, listing, nights]);
@@ -119,7 +119,7 @@ export function RentCheckout({
             <CardTitle>Price breakdown</CardTitle>
             <p className="text-sm text-muted-foreground">
               {nights
-                ? `${nights} night${nights === 1 ? "" : "s"} · monthly rent prorated over 30 days`
+                ? `${nights} night${nights === 1 ? "" : "s"} × ${formatPrice(listing.price)} per night`
                 : "Select your dates to see the final price"}
             </p>
           </CardHeader>

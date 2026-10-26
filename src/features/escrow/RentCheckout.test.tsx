@@ -12,20 +12,31 @@ jest.mock("next/navigation", () => ({
 jest.mock("./BookingEscrowCheckout", () => ({
   BookingEscrowCheckout: ({
     onFunded,
+    booking,
   }: {
     onFunded?: (intent: {
       state: { step: "funded"; contractId: string };
     }) => void;
+    booking: {
+      price: { nightlyRate: number; nights: number; subtotal: number };
+    } | null;
   }) => (
-    <button
-      onClick={() =>
-        onFunded?.({
-          state: { step: "funded", contractId: "C-123" },
-        })
-      }
-    >
-      Complete funding
-    </button>
+    <>
+      <div data-testid="booking-price">
+        {booking
+          ? `${booking.price.nightlyRate}|${booking.price.nights}|${booking.price.subtotal}`
+          : "no booking"}
+      </div>
+      <button
+        onClick={() =>
+          onFunded?.({
+            state: { step: "funded", contractId: "C-123" },
+          })
+        }
+      >
+        Complete funding
+      </button>
+    </>
   ),
 }));
 
@@ -72,6 +83,18 @@ it("initializes the checkout with the selected stay dates", () => {
   expect(
     screen.getByRole("button", { name: "Nov 01 - Nov 06 (5 nights)" }),
   ).toBeInTheDocument();
+});
+
+it("charges the listing nightly rate for every stay night", () => {
+  render(
+    <RentCheckout
+      listing={listing}
+      initialCheckIn="2026-11-01"
+      initialCheckOut="2026-11-06"
+    />,
+  );
+
+  expect(screen.getByTestId("booking-price")).toHaveTextContent("1200|5|6000");
 });
 
 it("ignores invalid or reversed initial stay dates", () => {

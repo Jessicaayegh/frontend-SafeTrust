@@ -55,17 +55,17 @@ const intentWith = (
 });
 
 describe("pricing", () => {
-  it("preserves exact monthly-rent proration before calculating fees", () => {
+  it("prices each rental night at the listing's nightly rate", () => {
     const p = computeBookingPrice({
-      nightlyRate: 86 / 30,
+      nightlyRate: 86,
       nights: 3,
       guests: 1,
-      subtotalOverride: (86 * 3) / 30,
     });
-    expect(p.subtotal).toBe(8.6);
-    expect(p.tax).toBe(0.86);
-    expect(p.platformFee).toBe(0.43);
-    expect(p.total).toBe(9.89);
+    expect(p.nightlyRate).toBe(86);
+    expect(p.subtotal).toBe(258);
+    expect(p.tax).toBe(25.8);
+    expect(p.platformFee).toBe(12.9);
+    expect(p.total).toBe(296.7);
   });
 
   it("adds subtotal, tax and platform fee in cents", () => {
