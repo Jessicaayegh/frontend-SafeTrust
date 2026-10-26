@@ -71,12 +71,20 @@ test("profile editing works with reduced motion and a failed glass chunk", async
 }, testInfo) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   // Use a new document so the glass chunk isn't already loaded by the dashboard.
-  const manifest = JSON.parse(
+  const manifest: Record<string, { files: string[] }> = JSON.parse(
     readFileSync(resolve(".next/react-loadable-manifest.json"), "utf8"),
   );
-  const files: string[] =
-    manifest["components/dashboard/ui/DashboardGlassCard.tsx -> ./GlassSurface"]
-      .files;
+  const glassChunk = Object.entries(manifest).find(
+    ([key]) =>
+      key.replace(/\\/g, "/") ===
+      "components/dashboard/ui/DashboardGlassCard.tsx -> ./GlassSurface",
+  );
+  if (!glassChunk) {
+    throw new Error(
+      "DashboardGlassCard glass chunk is missing from the manifest",
+    );
+  }
+  const files: string[] = glassChunk[1].files;
   for (const file of files.filter((file) => file.endsWith(".js"))) {
     await page.route(`**/_next/${file}`, (route) =>
       route.abort("blockedbyclient"),

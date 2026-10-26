@@ -160,6 +160,14 @@ export async function mockFirebaseAuth(
     });
   });
 
+  await page.route("**/api/account/wallets", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ wallets: [] }),
+    }),
+  );
+
   await page.route(IDENTITY_TOOLKIT, async (route) => {
     const request = route.request();
     if (request.method() === "OPTIONS") {

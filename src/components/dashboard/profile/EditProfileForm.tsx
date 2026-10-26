@@ -6,11 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { listWallets } from "@/features/account/wallets";
-import { AccountOverviewTable } from "./AccountOverviewTable";
 import { AvatarUpload } from "./AvatarUpload";
+
+const AccountOverviewTable = dynamic(() =>
+  import("./AccountOverviewTable").then(
+    (module) => module.AccountOverviewTable,
+  ),
+);
 
 interface ProfileFormData {
   firstName: string;
