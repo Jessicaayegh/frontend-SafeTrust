@@ -60,6 +60,7 @@ describe("POST /api/listings/[id]/reports", () => {
       `https://backend.example/api/apartments/${VALID_ID}/reports`,
       expect.objectContaining({
         method: "POST",
+        signal: expect.any(AbortSignal),
         headers: {
           Authorization: "Bearer firebase-token",
           "Content-Type": "application/json",

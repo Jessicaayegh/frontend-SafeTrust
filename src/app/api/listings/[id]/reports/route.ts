@@ -54,6 +54,7 @@ export async function POST(
       `${backendUrl}/api/apartments/${encodeURIComponent(id)}/reports`,
       {
         method: "POST",
+        signal: AbortSignal.timeout(10_000),
         headers: {
           Authorization: authorization,
           "Content-Type": "application/json",

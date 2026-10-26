@@ -81,7 +81,11 @@ export default function ReportButton({
   const [unavailable, setUnavailable] = useState(false);
   const [error, setError] = useState("");
   const successRef = useRef<HTMLParagraphElement>(null);
-  const operationRef = useRef<{ key: string; id: string } | null>(null);
+  const operationRef = useRef<{
+    listingId: string;
+    key: string;
+    id: string;
+  } | null>(null);
   const submitLockRef = useRef(false);
   const validationError = validateReportInput(category, details);
 
@@ -100,11 +104,13 @@ export default function ReportButton({
       process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
       !isApartmentId(listingId);
     setUnavailable(isUnavailable);
-    setCategory("");
-    setDetails("");
-    setError("");
-    setSubmitted(false);
-    operationRef.current = null;
+    if (operationRef.current?.listingId !== listingId) {
+      setCategory("");
+      setDetails("");
+      setError("");
+      setSubmitted(false);
+      operationRef.current = null;
+    }
     setIsOpen(true);
   };
 
@@ -126,7 +132,7 @@ export default function ReportButton({
       const key = JSON.stringify([listingId, category, details.trim()]);
       let operation = operationRef.current;
       if (!operation || operation.key !== key) {
-        operation = { key, id: createClientOpId() };
+        operation = { listingId, key, id: createClientOpId() };
         operationRef.current = operation;
       }
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ReportButton from "./ReportButton";
 import { auth } from "@/lib/firebase";
 import {
@@ -113,6 +113,44 @@ describe("ReportButton", () => {
       "Thanks. We've received your report and our team will review it.",
     );
     expect(mockSubmit.mock.calls[0][2]).toBe(mockSubmit.mock.calls[1][2]);
+  });
+
+  it("keeps an in-flight report attempt when the dialog is closed and reopened", async () => {
+    let rejectFirst!: (error: TypeError) => void;
+    mockSubmit.mockImplementationOnce(
+      () =>
+        new Promise<Awaited<ReturnType<typeof submitListingReport>>>(
+          (_, reject) => {
+            rejectFirst = reject;
+          },
+        ),
+    );
+    mockSubmit.mockResolvedValueOnce({ id: "report-1", status: "open" });
+    render(<ReportButton listingId={validId} listingName="Apartment" />);
+    fireEvent.click(screen.getByRole("button", { name: "Report this listing" }));
+    fireEvent.click(screen.getByLabelText("Safety concern"));
+    fireEvent.click(screen.getByRole("button", { name: "Submit Report" }));
+    const operationId = mockSubmit.mock.calls[0][2];
+
+    fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Report this listing" }));
+    expect(screen.getByLabelText("Safety concern")).toBeChecked();
+    expect(screen.getByRole("button", { name: "Submit Report" })).toBeDisabled();
+
+    await act(async () => {
+      rejectFirst(new TypeError("offline"));
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Check your connection and try again.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Submit Report" }));
+    await screen.findByText(
+      "Thanks. We've received your report and our team will review it.",
+    );
+    expect(mockSubmit.mock.calls[1][2]).toBe(operationId);
   });
 
   it.each([

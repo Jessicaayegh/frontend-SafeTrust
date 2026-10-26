@@ -5,8 +5,6 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import nextDynamic from "next/dynamic";
 import {
-  RoomPhotos,
-  AdditionalRoomPhotos,
   RoomDetailsCard,
   RoomActionBar,
   MobileBookingCard,
@@ -39,6 +37,13 @@ const RoomBookingCard = nextDynamic(
       </div>
     ),
   },
+);
+
+const RoomPhotos = nextDynamic(
+  () => import("@/components/rooms/gallery/RoomPhotos"),
+);
+const AdditionalRoomPhotos = nextDynamic(
+  () => import("@/components/rooms/gallery/AdditionalRoomPhotos"),
 );
 
 const roomListing = getApartmentById("1");
