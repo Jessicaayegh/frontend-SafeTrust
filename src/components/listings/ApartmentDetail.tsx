@@ -1,17 +1,21 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ApartmentListing } from "@/types/hotel";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import AmenityIcons from "./AmenityIcons";
 import { formatListingPrice } from "./formatListingPrice";
 import ImageGallery from "./ImageGallery";
-import ReportButton from "@/components/rooms/actions/ReportButton";
 import { ListingLocation } from "@/features/listings/detail/ListingLocation";
 import {
   BookingSummaryBar,
   type BookingIntent,
 } from "@/features/listings/detail/BookingSummaryBar";
+
+const ReportButton = dynamic(
+  () => import("@/components/rooms/actions/ReportButton"),
+);
 
 interface ApartmentDetailProps {
   apartment: ApartmentListing;

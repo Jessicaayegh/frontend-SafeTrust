@@ -4,16 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import nextDynamic from "next/dynamic";
-import {
-  RoomDetailsCard,
-  RoomActionBar,
-  MobileBookingCard,
-  BookingConfirmation,
-  AmenitiesCard,
-  LocationCard,
-  HostCard,
-  PolicyCard,
-} from "@/components/rooms";
+import RoomDetailsCard from "@/components/rooms/cards/RoomDetailsCard";
 import { useRouter } from "next/navigation";
 import { parseISO } from "date-fns";
 import { NavigationHeader } from "@/components/navigation/NavigationHeader";
@@ -44,6 +35,29 @@ const RoomPhotos = nextDynamic(
 );
 const AdditionalRoomPhotos = nextDynamic(
   () => import("@/components/rooms/gallery/AdditionalRoomPhotos"),
+);
+const RoomActionBar = nextDynamic(
+  () => import("@/components/rooms/actions/RoomActionBar"),
+);
+const MobileBookingCard = nextDynamic(() =>
+  import("@/components/rooms/booking/MobileBookingCard"),
+);
+const BookingConfirmation = nextDynamic(() =>
+  import("@/components/rooms/booking/BookingConfirmation").then(
+    (module) => module.BookingConfirmation,
+  ),
+);
+const AmenitiesCard = nextDynamic(() =>
+  import("@/components/rooms/cards/AmenitiesCard"),
+);
+const LocationCard = nextDynamic(() =>
+  import("@/components/rooms/cards/LocationCard"),
+);
+const HostCard = nextDynamic(() =>
+  import("@/components/rooms/cards/HostCard"),
+);
+const PolicyCard = nextDynamic(() =>
+  import("@/components/rooms/cards/PolicyCard"),
 );
 
 const roomListing = getApartmentById("1");
