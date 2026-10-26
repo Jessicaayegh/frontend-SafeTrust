@@ -78,7 +78,7 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Your account</h1>
-      <UserProfileCard user={profile} />
+      <UserProfileCard key={profile.id} user={profile} />
       {walletError && (
         <p role="alert" className="text-sm text-destructive">
           {walletError}

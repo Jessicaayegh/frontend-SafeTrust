@@ -34,6 +34,7 @@ export async function proxyToBackend(
       },
       ...(body ? { body } : {}),
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     });
   } catch (error) {
     console.error("Account backend proxy error:", error);
@@ -59,7 +60,15 @@ export async function proxyToBackend(
       );
     }
   } else {
-    data = { error: (await response.text()) || "BACKEND_REQUEST_FAILED" };
+    const text = await response.text();
+    if (!response.ok) {
+      console.error("Non-JSON error from account backend:", response.status);
+      return NextResponse.json(
+        { error: "BACKEND_REQUEST_FAILED" },
+        { status: response.status },
+      );
+    }
+    data = text ? { message: text } : null;
   }
 
   return NextResponse.json(data, { status: response.status });
