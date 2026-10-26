@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import nextDynamic from "next/dynamic";
-import { RoomDetailsCard } from "@/components/rooms";
+import RoomDetailsCard from "@/components/rooms/cards/RoomDetailsCard";
 import { useRouter } from "next/navigation";
 import { parseISO } from "date-fns";
 import { NavigationHeader } from "@/components/navigation/NavigationHeader";
