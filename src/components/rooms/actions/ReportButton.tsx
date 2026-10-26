@@ -24,6 +24,7 @@ import {
   type ReportCategory,
 } from "@/features/listings/reports";
 import { isApartmentId } from "@/features/listings/report-schema";
+import { clientEnv } from "@/config/env";
 
 interface ReportButtonProps {
   listingId: string;
@@ -101,7 +102,7 @@ export default function ReportButton({
     }
 
     const isUnavailable =
-      process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
+      clientEnv.NEXT_PUBLIC_DEMO_MODE === "true" ||
       !isApartmentId(listingId);
     setUnavailable(isUnavailable);
     if (operationRef.current?.listingId !== listingId) {

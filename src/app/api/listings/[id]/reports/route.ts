@@ -3,6 +3,8 @@ import {
   isApartmentId,
   isReportCategory,
 } from "@/features/listings/report-schema";
+import { clientEnv } from "@/config/env";
+import { serverEnv } from "@/config/env.server";
 
 const unavailable = () =>
   NextResponse.json({ error: "BACKEND_NOT_CONFIGURED" }, { status: 503 });
@@ -19,7 +21,8 @@ export async function POST(
     return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
   }
 
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true" || !process.env.BACKEND_URL) {
+  const backendUrl = serverEnv.BACKEND_URL;
+  if (clientEnv.NEXT_PUBLIC_DEMO_MODE === "true" || !backendUrl) {
     return unavailable();
   }
 
@@ -49,9 +52,9 @@ export async function POST(
   }
 
   try {
-    const backendUrl = process.env.BACKEND_URL.replace(/\/+$/, "");
+    const normalizedBackendUrl = backendUrl.replace(/\/+$/, "");
     const response = await fetch(
-      `${backendUrl}/api/apartments/${encodeURIComponent(id)}/reports`,
+      `${normalizedBackendUrl}/api/apartments/${encodeURIComponent(id)}/reports`,
       {
         method: "POST",
         signal: AbortSignal.timeout(10_000),
