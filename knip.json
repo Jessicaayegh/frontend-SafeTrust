@@ -23,7 +23,6 @@
     ".husky/**": ["binaries"]
   },
   "ignoreDependencies": [
-    "lint-staged",
     "@axe-core/playwright",
     "@walletconnect/core",
     "@walletconnect/utils",
