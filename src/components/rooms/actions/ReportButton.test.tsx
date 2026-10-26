@@ -163,6 +163,7 @@ describe("ReportButton", () => {
       "BACKEND_NOT_CONFIGURED",
       "Reporting isn't available in this environment.",
     ],
+    ["DEMO_MODE", "Reporting isn't available in this environment."],
   ])("shows the specific message for %s", async (code, message) => {
     mockSubmit.mockRejectedValueOnce(new ReportError(code));
     render(
@@ -176,7 +177,7 @@ describe("ReportButton", () => {
     fireEvent.click(screen.getByRole("button", { name: "Submit Report" }));
 
     const messageElement =
-      code === "BACKEND_NOT_CONFIGURED"
+      code === "BACKEND_NOT_CONFIGURED" || code === "DEMO_MODE"
         ? await screen.findByRole("status")
         : await screen.findByRole("alert");
     expect(messageElement).toHaveTextContent(message);

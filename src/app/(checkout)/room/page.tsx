@@ -172,7 +172,7 @@ export default function RoomPage() {
           {/* Action Bar */}
           <RoomActionBar
             listingId={hotelId}
-            listingName="Shikara Hotel"
+            listingName={listing.name}
             isLiked={isLiked}
             likeCount={likeCount}
             onLike={handleLike}

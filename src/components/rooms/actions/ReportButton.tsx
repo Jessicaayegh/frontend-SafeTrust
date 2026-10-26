@@ -52,6 +52,10 @@ const errorMessage = (error: unknown): string => {
   return "We couldn't send your report. Please try again.";
 };
 
+const isUnavailableError = (error: unknown): boolean =>
+  error instanceof ReportError &&
+  (error.code === "BACKEND_NOT_CONFIGURED" || error.code === "DEMO_MODE");
+
 const createClientOpId = (): string => {
   if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
 
@@ -148,9 +152,8 @@ export default function ReportButton({
       setSubmitted(true);
       operationRef.current = null;
     } catch (submitError) {
-      const message = errorMessage(submitError);
-      setError(message);
-      if (message === "Reporting isn't available in this environment.") {
+      setError(errorMessage(submitError));
+      if (isUnavailableError(submitError)) {
         setUnavailable(true);
       }
     } finally {
