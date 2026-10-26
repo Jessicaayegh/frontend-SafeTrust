@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { setSessionCookie } from "@/lib/auth/session";
-import { resolveRedirectPath } from "@/lib/auth/redirect";
 import Illustration from "@/components/auth/ui/Illustration";
 import {
   AuthMotion,
@@ -135,9 +134,6 @@ export default function RegisterPage() {
       });
 
       router.push(`/verify-email?redirect=${encodeURIComponent(safeRedirect)}`);
-      // Keep the return path so the login after sign-up lands on the page
-      // the user originally asked for.
-      router.push(`/login${keep}`);
     } catch (err: unknown) {
       if (err instanceof FirebaseError) {
         toast.error(
