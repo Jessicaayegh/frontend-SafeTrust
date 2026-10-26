@@ -177,11 +177,11 @@ test("desktop: filters and sort survive a help panel round trip", async ({
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
 
-  // The chosen sort is still applied (orange highlight in the popover).
+  // The chosen sort remains selected after closing and reopening the popover.
   await page.getByRole("button", { name: /^Sort/ }).click();
   await expect(
     page.getByRole("button", { name: "Price: High to Low", exact: true }),
-  ).toHaveClass(/bg-orange-50/);
+  ).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("Escape");
 });
 
