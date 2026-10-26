@@ -29,7 +29,6 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { PageContainer } from "@/components/layouts/PageContainer";
-import { applyRentFilters } from "@/components/listings/filters/applyRentFilters";
 import {
   resolveSortOption,
   useRentFilters,
@@ -37,8 +36,9 @@ import {
 import { SortMenu } from "@/components/listings/SortMenu";
 import Link from "next/link";
 import { RentMotion, RentReveal } from "@/components/listings/RentMotion";
+import { useListingResults } from "@/features/listings/search/useListingResults";
+import { listingHref } from "@/features/listings/search/links";
 import { RentHelpPanel } from "@/features/help";
-import { normalizeSearchText } from "@/lib/searchText";
 
 const ApartmentGrid = dynamic(
   () => import("@/components/listings/ApartmentGrid"),
@@ -101,8 +101,6 @@ const FilterSidebar = dynamic(
 function RentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = searchParams.get("q")?.trim() ?? "";
-  const normalizedQuery = normalizeSearchText(query);
   const geo = useRequiredSharedGeolocation();
   const [sortFallback, setSortFallback] = useState(
     () => searchParams.get("sort") === "nearest",
@@ -122,6 +120,7 @@ function RentPageContent() {
       mobileHelpRef.current,
     [],
   );
+  const filteredResults = useListingResults(APARTMENT_LISTINGS, filters);
   const destinationCounts = useMemo(
     () =>
       APARTMENT_LISTINGS.reduce<Record<string, number>>((counts, listing) => {
@@ -189,28 +188,42 @@ function RentPageContent() {
   );
 
   const results = useMemo(() => {
-    const filtered = applyRentFilters(APARTMENT_LISTINGS, {
-      ...filters,
-      sort: effectiveSort,
-    }).filter(
-      (apartment) =>
-        normalizedQuery.length === 0 ||
-        normalizeSearchText(`${apartment.name} ${apartment.address}`).includes(
-          normalizedQuery,
-        ),
-    );
     if (effectiveSort === "nearest" && geo.position) {
       return sortByDistance(
-        filtered,
+        filteredResults,
         geo.position,
         (apartment) => apartment.coordinates,
       );
     }
-    return filtered;
-  }, [effectiveSort, filters, geo.position, normalizedQuery]);
+    return filteredResults;
+  }, [effectiveSort, filteredResults, geo.position]);
+
+  const clearSearchAndFilters = () => {
+    const query = new URLSearchParams(searchParams.toString());
+    for (const key of [
+      "q",
+      "categories",
+      "location",
+      "bedrooms",
+      "min",
+      "max",
+      "sort",
+    ]) {
+      query.delete(key);
+    }
+    const queryString = query.toString();
+    router.replace(queryString ? `/rent?${queryString}` : "/rent", {
+      scroll: false,
+    });
+  };
 
   const handleApartmentClick = (apartment: ApartmentListing) => {
-    router.push(`/rent/${apartment.id}`);
+    router.push(
+      listingHref(
+        `/rent/${apartment.id}`,
+        new URLSearchParams(searchParams.toString()),
+      ),
+    );
   };
 
   const clearLocation = () => {
@@ -221,7 +234,7 @@ function RentPageContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <HotelHeader />
+      <HotelHeader listingSearchParams={searchParams.toString()} />
 
       {/* lg+ launcher: a vertical tab on the right edge. Kept below the header
           (z-50), the filter drawer (z-40/z-50) and dialogs (z-[90]/[100]), and
@@ -373,7 +386,12 @@ function RentPageContent() {
                   variant="outline"
                   className="min-h-11 h-auto whitespace-normal text-center justify-center gap-2 px-3 py-2 text-xs sm:text-sm"
                 >
-                  <Link href="/guest/suggestions">
+                  <Link
+                    href={listingHref(
+                      "/guest/suggestions",
+                      new URLSearchParams(searchParams.toString()),
+                    )}
+                  >
                     <Lightbulb
                       aria-hidden="true"
                       className="h-4 w-4 shrink-0"
@@ -444,8 +462,8 @@ function RentPageContent() {
                 title="No places match these filters"
                 description="Try another destination or widen the price range."
                 action={
-                  <Button variant="outline" onClick={reset}>
-                    Clear all filters
+                  <Button variant="outline" onClick={clearSearchAndFilters}>
+                    Clear search and filters
                   </Button>
                 }
               />
@@ -462,6 +480,7 @@ function RentPageContent() {
                 )}
                 distances={distances}
                 onApartmentClick={handleApartmentClick}
+                listingSearchParams={searchParams.toString()}
               />
             )}
           </div>
