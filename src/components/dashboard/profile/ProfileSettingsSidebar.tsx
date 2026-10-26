@@ -4,7 +4,7 @@ import {
   navIconClass,
   navItemClass,
 } from "@/components/layouts/nav-item-styles";
-import { Home, User, Users, type LucideIcon } from "lucide-react";
+import { Home, Shield, User, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

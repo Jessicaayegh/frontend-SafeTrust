@@ -24,7 +24,7 @@ interface ProfileFormData {
 
 interface AccountData {
   createdAt: string;
-  walletAddress: string;
+  walletAddress: string | null;
   email: string;
 }
 
@@ -78,19 +78,23 @@ export function EditProfileForm() {
           walletAddress: "No wallet linked",
           email: user.email ?? "—",
         });
-        void user.getIdToken().then(listWallets).then(
-          ({ wallets }) => {
-            const primaryWallet = wallets.find((wallet) => wallet.isPrimary);
-            setAccount((current) => ({
-              ...current,
-              walletAddress: primaryWallet?.address ?? "No wallet linked",
-            }));
-          },
-          (error: unknown) => {
-            console.error("Failed to load linked wallet:", error);
-            toast.error("Couldn't load your primary wallet.");
-          },
-        );
+        void user
+          .getIdToken()
+          .then(listWallets)
+          .then(
+            ({ wallets }) => {
+              const primaryWallet = wallets.find((wallet) => wallet.isPrimary);
+              setAccount((current) => ({
+                ...current,
+                walletAddress: primaryWallet?.address ?? "No wallet linked",
+              }));
+            },
+            (error: unknown) => {
+              console.error("Failed to load linked wallet:", error);
+              setAccount((current) => ({ ...current, walletAddress: null }));
+              toast.error("Couldn't load your primary wallet.");
+            },
+          );
       }
       setIsInitializing(false);
     });

@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 interface AccountOverviewTableProps {
   createdAt: string;
-  walletAddress: string;
+  walletAddress: string | null;
   email: string;
 }
 
@@ -25,6 +25,10 @@ export function AccountOverviewTable({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    if (!walletAddress || walletAddress === "No wallet linked") {
+      return;
+    }
+
     try {
       await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
@@ -35,10 +39,11 @@ export function AccountOverviewTable({
     }
   };
 
-  const truncated =
-    walletAddress !== "No wallet linked" && walletAddress.length > 10
+  const truncated = walletAddress
+    ? walletAddress.length > 10
       ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
-      : walletAddress;
+      : walletAddress
+    : "Wallet unavailable";
 
   return (
     <div>
@@ -65,7 +70,8 @@ export function AccountOverviewTable({
             <tr className="border-t">
               <td className="px-4 py-3 text-muted-foreground">{createdAt}</td>
               <td className="px-4 py-3">
-                {walletAddress === "No wallet linked" ? (
+                {walletAddress === null ||
+                walletAddress === "No wallet linked" ? (
                   <span className="text-muted-foreground">{truncated}</span>
                 ) : (
                   <div className="flex items-center gap-1.5">
