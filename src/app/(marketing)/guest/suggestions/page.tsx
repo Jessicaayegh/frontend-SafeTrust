@@ -50,7 +50,7 @@ function GuestSuggestionsContent() {
     if (!SELECTED_ID_PATTERN.test(id)) return;
     const query = new URLSearchParams(paramsString);
     query.set("selected", id);
-    router.replace(`/guest/suggestions?${query.toString()}`, {
+    router.push(`/guest/suggestions?${query.toString()}`, {
       scroll: false,
     });
   };

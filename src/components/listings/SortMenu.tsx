@@ -55,7 +55,7 @@ export function SortMenu({
               className={cn(
                 "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-muted",
                 value === option &&
-                  "font-medium text-foreground dark:text-foreground",
+                  "bg-orange-50 font-medium text-orange-900 dark:bg-orange-950/30 dark:text-orange-100",
               )}
             >
               {LABELS[option]}

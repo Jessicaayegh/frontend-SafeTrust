@@ -114,6 +114,16 @@ test("rental and suggestions views share search results and preserve selection",
     page.getByRole("heading", { name: "La Estación Flat" }),
   ).toBeVisible();
 
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`/guest/suggestions\\?${search}`));
+  await expect(
+    page.getByRole("heading", { name: "Jardín de Heredia House" }),
+  ).toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL(
+    new RegExp(`/guest/suggestions\\?${search}&selected=5`),
+  );
+
   await page.getByRole("button", { name: "View full details" }).click();
   await expect(page).toHaveURL(new RegExp(`/rent/5\\?${search}`));
   await page.goBack();
@@ -128,6 +138,20 @@ test("rental and suggestions views share search results and preserve selection",
   await expect(page).toHaveURL(new RegExp(`/rent\\?${search}`));
   await expect(page.getByRole("article")).toHaveCount(rentNames.length);
   await expectHealthyPage(page);
+});
+
+test("clearing an unmatched search also resets rent filters", async ({
+  page,
+}) => {
+  await page.goto("/rent?q=not-a-rental&categories=Family&bedrooms=2");
+  await expect(page.getByText("0 units available")).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Clear search and filters" })
+    .click();
+
+  await expect(page).toHaveURL("/rent");
+  await expect(page.getByRole("article").first()).toBeVisible();
 });
 
 test("mobile suggestion selection opens a detail link with the search preserved", async ({

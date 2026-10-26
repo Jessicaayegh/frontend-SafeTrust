@@ -198,6 +198,25 @@ function RentPageContent() {
     return filteredResults;
   }, [effectiveSort, filteredResults, geo.position]);
 
+  const clearSearchAndFilters = () => {
+    const query = new URLSearchParams(searchParams.toString());
+    for (const key of [
+      "q",
+      "categories",
+      "location",
+      "bedrooms",
+      "min",
+      "max",
+      "sort",
+    ]) {
+      query.delete(key);
+    }
+    const queryString = query.toString();
+    router.replace(queryString ? `/rent?${queryString}` : "/rent", {
+      scroll: false,
+    });
+  };
+
   const handleApartmentClick = (apartment: ApartmentListing) => {
     router.push(
       listingHref(
@@ -443,8 +462,8 @@ function RentPageContent() {
                 title="No places match these filters"
                 description="Try another destination or widen the price range."
                 action={
-                  <Button variant="outline" onClick={reset}>
-                    Clear all filters
+                  <Button variant="outline" onClick={clearSearchAndFilters}>
+                    Clear search and filters
                   </Button>
                 }
               />

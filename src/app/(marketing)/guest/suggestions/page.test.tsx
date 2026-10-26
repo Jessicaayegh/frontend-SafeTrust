@@ -56,14 +56,16 @@ describe("GuestSuggestionsPage – Message host", () => {
     fireEvent.click(
       screen.getByRole("button", { name: "Select Luz de Los Yoses Studio" }),
     );
-    expect(mockReplace).toHaveBeenCalledWith("/guest/suggestions?selected=2", {
-      scroll: false,
-    });
+    expect(mockPush).toHaveBeenNthCalledWith(
+      1,
+      "/guest/suggestions?selected=2",
+      { scroll: false },
+    );
     mockSearchParams = "selected=2";
     rerender(<GuestSuggestionsPage />);
     fireEvent.click(screen.getByRole("button", { name: /Message host/i }));
 
-    expect(mockPush).toHaveBeenCalledWith("/dashboard/messages/conv-5");
+    expect(mockPush).toHaveBeenLastCalledWith("/dashboard/messages/conv-5");
   });
 
   it("ignores malformed or filtered-out selected values", () => {
@@ -136,10 +138,10 @@ describe("GuestSuggestionsPage – Message host", () => {
 
     expect(screen.getByText("2 units available")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Jardín de Heredia House/ }),
+      screen.getByRole("button", { name: "Select Jardín de Heredia House" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /La Estación Flat/ }),
+      screen.getByRole("button", { name: "Select La Estación Flat" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Jardín de Heredia House" }),
@@ -156,8 +158,11 @@ describe("GuestSuggestionsPage – Message host", () => {
 
     expect(screen.getByText("0 units available")).toBeInTheDocument();
     expect(
-      screen.getByText("No suggested stays match your search."),
-    ).toHaveAttribute("role", "status");
+      screen.getByRole("heading", { name: "No places match this search" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Clear search" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Book with Escrow/ }),
     ).not.toBeInTheDocument();
