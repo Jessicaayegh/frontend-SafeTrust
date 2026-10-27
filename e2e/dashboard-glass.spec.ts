@@ -71,7 +71,7 @@ test("profile editing works with reduced motion and a failed glass chunk", async
 }, testInfo) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   // Use a new document so the glass chunk isn't already loaded by the dashboard.
-  const manifest = JSON.parse(
+  const manifest: Record<string, { files: string[] }> = JSON.parse(
     readFileSync(resolve(".next/react-loadable-manifest.json"), "utf8"),
   ) as Record<string, { files: string[] }>;
   // Next writes this key with the platform's path separators, so match on a

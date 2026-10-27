@@ -6,10 +6,12 @@ const createJestConfig = nextJest({
 
 /** @type {import('jest').Config} */
 const customJestConfig = {
+  rootDir: ".",
   roots: ["<rootDir>/src", "<rootDir>/__mocks__"],
   testMatch: ["<rootDir>/src/**/*.test.{ts,tsx}"],
   setupFilesAfterEnv: ["<rootDir>/src/test/setup.ts"],
   testEnvironment: "jest-environment-jsdom",
+  moduleDirectories: ["node_modules", "<rootDir>"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@creit[.]tech/stellar-wallets-kit/types$":
