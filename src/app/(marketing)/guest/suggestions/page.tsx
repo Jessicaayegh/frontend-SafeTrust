@@ -20,39 +20,45 @@ import HotelHeader from "@/components/listings/HotelHeader";
 import { PageContainer } from "@/components/layouts/PageContainer";
 import { getConversationIdForApartment } from "@/lib/conversationRoutes";
 import { APARTMENT_LISTINGS } from "@/lib/mockData/apartmentListings";
-import { GeolocationProvider } from "@/providers/GeolocationProvider";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ListingLocation } from "@/features/listings/detail/ListingLocation";
-import { normalizeSearchText } from "@/lib/searchText";
+import { useListingResults } from "@/features/listings/search/useListingResults";
+import { listingHref } from "@/features/listings/search/links";
+import { GeolocationProvider } from "@/providers/GeolocationProvider";
 
-export default function GuestSuggestionsPage() {
-  return (
-    <Suspense fallback={null}>
-      <GeolocationProvider>
-        <GuestSuggestionsContent />
-      </GeolocationProvider>
-    </Suspense>
-  );
-}
+const SELECTED_ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
 
 function GuestSuggestionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const normalizedQuery = normalizeSearchText(searchParams.get("q") ?? "");
-  const listings = APARTMENT_LISTINGS.filter(
-    (apartment) =>
-      normalizedQuery.length === 0 ||
-      normalizeSearchText(`${apartment.name} ${apartment.address}`).includes(
-        normalizedQuery,
-      ),
-  );
-  const [selectedId, setSelectedId] = useState(APARTMENT_LISTINGS[0].id);
+  const paramsString = searchParams.toString();
+  const results = useListingResults(APARTMENT_LISTINGS);
   const [favorites, setFavorites] = useState<string[]>([]);
 
+  const requestedId = searchParams.get("selected");
+  const validRequestedId =
+    requestedId && SELECTED_ID_PATTERN.test(requestedId) ? requestedId : null;
   const selected =
-    listings.find((apartment) => apartment.id === selectedId) ?? listings[0];
+    results.find((listing) => listing.id === validRequestedId) ??
+    results[0] ??
+    null;
   const selectedConversationId = selected
     ? getConversationIdForApartment(selected.name)
     : null;
+
+  const selectListing = (id: string) => {
+    if (!SELECTED_ID_PATTERN.test(id)) return;
+    const query = new URLSearchParams(paramsString);
+    query.set("selected", id);
+    router.push(`/guest/suggestions?${query.toString()}`, {
+      scroll: false,
+    });
+  };
+
+  const criteria = [...searchParams.entries()]
+    .filter(([key]) => key !== "selected" && key !== "view")
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(", ");
 
   const toggleFavorite = (id: string) => {
     setFavorites((curr) =>
@@ -66,9 +72,7 @@ function GuestSuggestionsContent() {
                     text-gray-900 dark:text-white"
     >
       {/* Standalone header */}
-      <Suspense fallback={null}>
-        <HotelHeader />
-      </Suspense>
+      <HotelHeader listingSearchParams={paramsString} />
 
       <PageContainer width="wide" className="py-6">
         <nav
@@ -80,7 +84,9 @@ function GuestSuggestionsContent() {
             variant="outline"
             className="min-h-11 h-auto whitespace-normal text-center gap-2 px-3 py-2 text-xs sm:text-sm"
           >
-            <Link href="/rent">
+            <Link
+              href={listingHref("/rent", new URLSearchParams(paramsString))}
+            >
               <ArrowLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
               Browse rentals
             </Link>
@@ -100,21 +106,22 @@ function GuestSuggestionsContent() {
           </Button>
         </nav>
         <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[240px_minmax(0,1fr)_260px] lg:gap-6 xl:grid-cols-[280px_minmax(0,1fr)_260px]">
-          {/* ── Left: Suggestions sidebar ── */}
+          {/* ΓöÇΓöÇ Left: Suggestions sidebar ΓöÇΓöÇ */}
           <aside className="min-w-0 space-y-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                 Suggestions
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {listings.length} units available
+                {results.length} {results.length === 1 ? "unit" : "units"}{" "}
+                available
               </p>
               <Link
-                href="/rent"
+                href={listingHref("/rent", new URLSearchParams(paramsString))}
                 className="text-sm text-orange-700 hover:text-orange-800
                            font-medium underline hover:no-underline"
               >
-                Browse all →
+                Browse all ΓåÆ
               </Link>
             </div>
 
@@ -122,7 +129,7 @@ function GuestSuggestionsContent() {
               aria-label="Suggested stays"
               className="m-0 flex list-none gap-3 overflow-x-auto p-0 pb-2 lg:block lg:max-h-[75dvh] lg:space-y-3 lg:overflow-y-auto lg:pr-1"
             >
-              {listings.map((apt) => (
+              {results.map((apt) => (
                 <li
                   key={apt.id}
                   className={cn(
@@ -139,9 +146,14 @@ function GuestSuggestionsContent() {
                         typeof window.matchMedia === "function" &&
                         window.matchMedia("(max-width: 1023px)").matches
                       ) {
-                        router.push(`/rent/${apt.id}`);
+                        router.push(
+                          listingHref(
+                            `/rent/${apt.id}`,
+                            new URLSearchParams(paramsString),
+                          ),
+                        );
                       } else {
-                        setSelectedId(apt.id);
+                        selectListing(apt.id);
                       }
                     }}
                     aria-pressed={selected?.id === apt.id}
@@ -188,11 +200,11 @@ function GuestSuggestionsContent() {
                                       text-xs text-gray-600 dark:text-gray-400"
                       >
                         <span>{apt.bedrooms}bd</span>
-                        <span>·</span>
+                        <span>┬╖</span>
                         {apt.petFriendly && (
                           <>
                             <span>pet friendly</span>
-                            <span>·</span>
+                            <span>┬╖</span>
                           </>
                         )}
                         <span>{apt.bathrooms} ba</span>
@@ -210,7 +222,7 @@ function GuestSuggestionsContent() {
                     type="button"
                     onClick={() => toggleFavorite(apt.id)}
                     aria-pressed={favorites.includes(apt.id)}
-                    aria-label="Toggle favorite"
+                    aria-label={`Toggle favorite for ${apt.name}`}
                     className="relative z-10 shrink-0 rounded-full p-1 focus-visible:ring-2 focus-visible:ring-orange-500 mt-0.5"
                   >
                     <Heart
@@ -228,9 +240,9 @@ function GuestSuggestionsContent() {
             </ul>
           </aside>
 
+          {/* ── Center: Main image + details ── */}
           {selected ? (
             <>
-              {/* ── Center: Main image + details ── */}
               <main className="min-w-0 space-y-4">
                 {/* Main image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gray-200 dark:bg-slate-700 sm:aspect-[16/10]">
@@ -336,9 +348,7 @@ function GuestSuggestionsContent() {
                     {selected.description}
                   </p>
                 </div>
-
-                {/* Where you'll stay map section */}
-                <div className="border-t border-gray-200 dark:border-slate-800 pt-4">
+                <div className="border-t border-gray-200 pt-4 dark:border-slate-800">
                   <ListingLocation listing={selected} />
                 </div>
               </main>
@@ -385,7 +395,12 @@ function GuestSuggestionsContent() {
                   <button
                     type="button"
                     onClick={() =>
-                      router.push(`/rent/${selected.id}/escrow/create`)
+                      router.push(
+                        listingHref(
+                          `/rent/${selected.id}/escrow/create`,
+                          new URLSearchParams(paramsString),
+                        ),
+                      )
                     }
                     className="w-full rounded-xl bg-orange-700 py-3 text-center
                            text-sm font-semibold text-white shadow-lg
@@ -397,7 +412,14 @@ function GuestSuggestionsContent() {
 
                   <button
                     type="button"
-                    onClick={() => router.push(`/rent/${selected.id}`)}
+                    onClick={() =>
+                      router.push(
+                        listingHref(
+                          `/rent/${selected.id}`,
+                          new URLSearchParams(paramsString),
+                        ),
+                      )
+                    }
                     className="w-full rounded-xl border border-gray-200
                            dark:border-slate-700 py-2.5 text-center text-sm
                            font-medium text-gray-700 dark:text-gray-200
@@ -428,15 +450,39 @@ function GuestSuggestionsContent() {
               </aside>
             </>
           ) : (
-            <p
-              role="status"
-              className="text-sm text-gray-600 dark:text-gray-400 lg:col-span-2"
-            >
-              No suggested stays match your search.
-            </p>
+            <main className="min-w-0">
+              <EmptyState
+                title="No places match this search"
+                description={
+                  criteria
+                    ? `No rentals match ${criteria}. Clear your search to see all available places.`
+                    : "No rentals are available right now."
+                }
+                action={
+                  <Button
+                    variant="outline"
+                    onClick={() => router.replace("/guest/suggestions")}
+                  >
+                    Clear search
+                  </Button>
+                }
+              />
+            </main>
           )}
         </div>
       </PageContainer>
     </div>
+  );
+}
+
+export default function GuestSuggestionsPage() {
+  return (
+    <Suspense
+      fallback={<main className="min-h-screen bg-white dark:bg-slate-900" />}
+    >
+      <GeolocationProvider>
+        <GuestSuggestionsContent />
+      </GeolocationProvider>
+    </Suspense>
   );
 }

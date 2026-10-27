@@ -20,29 +20,25 @@ import {
 import { distanceKm, sortByDistance } from "@/lib/geo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Drawer } from "vaul";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  Check,
+  BookOpen,
   LayoutDashboard,
   Lightbulb,
   SlidersHorizontal,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { PageContainer } from "@/components/layouts/PageContainer";
-import { applyRentFilters } from "@/components/listings/filters/applyRentFilters";
 import {
   resolveSortOption,
   useRentFilters,
 } from "@/components/listings/filters/useRentFilters";
+import { SortMenu } from "@/components/listings/SortMenu";
 import Link from "next/link";
 import { RentMotion, RentReveal } from "@/components/listings/RentMotion";
-import { normalizeSearchText } from "@/lib/searchText";
+import { useListingResults } from "@/features/listings/search/useListingResults";
+import { listingHref } from "@/features/listings/search/links";
+import { RentHelpPanel } from "@/features/help";
 
 const ApartmentGrid = dynamic(
   () => import("@/components/listings/ApartmentGrid"),
@@ -105,13 +101,26 @@ const FilterSidebar = dynamic(
 function RentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = searchParams.get("q")?.trim() ?? "";
-  const normalizedQuery = normalizeSearchText(query);
   const geo = useRequiredSharedGeolocation();
   const [sortFallback, setSortFallback] = useState(
     () => searchParams.get("sort") === "nearest",
   );
   const { filters, setFilters, reset, activeCount } = useRentFilters();
+  // The help panel overlays without rerouting, so filters/URL/scroll survive.
+  const [helpOpen, setHelpOpen] = useState(false);
+  // Exactly one launcher is visible per viewport; track both so the panel can
+  // return focus to whichever one opened it (Radix cannot: it doesn't own the
+  // launcher buttons when the sheet is used as a controlled component).
+  const desktopHelpRef = useRef<HTMLButtonElement>(null);
+  const mobileHelpRef = useRef<HTMLButtonElement>(null);
+  const restoreHelpFocus = useMemo(
+    () => () =>
+      // 1024px = Tailwind's `lg`, matching the launcher CSS breakpoints.
+      (window.innerWidth >= 1024 && desktopHelpRef.current) ||
+      mobileHelpRef.current,
+    [],
+  );
+  const filteredResults = useListingResults(APARTMENT_LISTINGS, filters);
   const destinationCounts = useMemo(
     () =>
       APARTMENT_LISTINGS.reduce<Record<string, number>>((counts, listing) => {
@@ -179,28 +188,42 @@ function RentPageContent() {
   );
 
   const results = useMemo(() => {
-    const filtered = applyRentFilters(APARTMENT_LISTINGS, {
-      ...filters,
-      sort: effectiveSort,
-    }).filter(
-      (apartment) =>
-        normalizedQuery.length === 0 ||
-        normalizeSearchText(`${apartment.name} ${apartment.address}`).includes(
-          normalizedQuery,
-        ),
-    );
     if (effectiveSort === "nearest" && geo.position) {
       return sortByDistance(
-        filtered,
+        filteredResults,
         geo.position,
         (apartment) => apartment.coordinates,
       );
     }
-    return filtered;
-  }, [effectiveSort, filters, geo.position, normalizedQuery]);
+    return filteredResults;
+  }, [effectiveSort, filteredResults, geo.position]);
+
+  const clearSearchAndFilters = () => {
+    const query = new URLSearchParams(searchParams.toString());
+    for (const key of [
+      "q",
+      "categories",
+      "location",
+      "bedrooms",
+      "min",
+      "max",
+      "sort",
+    ]) {
+      query.delete(key);
+    }
+    const queryString = query.toString();
+    router.replace(queryString ? `/rent?${queryString}` : "/rent", {
+      scroll: false,
+    });
+  };
 
   const handleApartmentClick = (apartment: ApartmentListing) => {
-    router.push(`/rent/${apartment.id}`);
+    router.push(
+      listingHref(
+        `/rent/${apartment.id}`,
+        new URLSearchParams(searchParams.toString()),
+      ),
+    );
   };
 
   const clearLocation = () => {
@@ -211,9 +234,31 @@ function RentPageContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <HotelHeader />
+      <HotelHeader listingSearchParams={searchParams.toString()} />
 
-      <PageContainer width="wide" className="flex flex-col lg:flex-row">
+      {/* lg+ launcher: a vertical tab on the right edge. Kept below the header
+          (z-50), the filter drawer (z-40/z-50) and dialogs (z-[90]/[100]), and
+          it shares the edge with the scrollbar only in a narrow band that
+          leaves the rest of the scrollbar usable. */}
+      <button
+        ref={desktopHelpRef}
+        type="button"
+        aria-haspopup="dialog"
+        onClick={() => setHelpOpen(true)}
+        className="fixed right-0 top-1/2 z-30 hidden -translate-y-1/2 items-center gap-2 rounded-l-lg border border-r-0 border-border bg-background/95 px-1.5 py-4 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none [writing-mode:vertical-rl] lg:flex"
+      >
+        <BookOpen
+          aria-hidden="true"
+          className="h-4 w-4 shrink-0 text-orange-700 dark:text-orange-400"
+        />
+        Help &amp; docs
+      </button>
+
+      {/* lg:pr-14 keeps the last card column clear of the fixed Help & docs tab. */}
+      <PageContainer
+        width="wide"
+        className="flex flex-col lg:flex-row lg:pr-14"
+      >
         <div className="hidden shrink-0 lg:block">
           <FilterSidebar
             filters={filters}
@@ -323,12 +368,30 @@ function RentPageContent() {
                   </Drawer.Portal>
                 </Drawer.Root>
 
+                {/* Below lg the help launcher lives in the toolbar instead of
+                    a floating tab, so it never covers listing cards. */}
+                <button
+                  ref={mobileHelpRef}
+                  type="button"
+                  aria-haspopup="dialog"
+                  onClick={() => setHelpOpen(true)}
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none lg:hidden"
+                >
+                  <BookOpen aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  Help
+                </button>
+
                 <Button
                   asChild
                   variant="outline"
                   className="min-h-11 h-auto whitespace-normal text-center justify-center gap-2 px-3 py-2 text-xs sm:text-sm"
                 >
-                  <Link href="/guest/suggestions">
+                  <Link
+                    href={listingHref(
+                      "/guest/suggestions",
+                      new URLSearchParams(searchParams.toString()),
+                    )}
+                  >
                     <Lightbulb
                       aria-hidden="true"
                       className="h-4 w-4 shrink-0"
@@ -351,62 +414,14 @@ function RentPageContent() {
                   </Link>
                 </Button>
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      aria-label={`Sort${activeCount ? `, ${activeCount} active filters` : ""}`}
-                      className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800"
-                    >
-                      <SlidersHorizontal className="h-4 w-4" />
-                      <span>Sort</span>
-                      {activeCount > 0 ? (
-                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
-                          {activeCount}
-                        </span>
-                      ) : null}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="end"
-                    className="w-64 space-y-2 border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800"
-                  >
-                    <div className="space-y-1">
-                      <p className="px-3 pb-1 text-xs font-semibold uppercase text-gray-600 dark:text-gray-400">
-                        Sort
-                      </p>
-                      {(
-                        [
-                          { label: "Relevance", value: "relevance" },
-                          { label: "Price: Low to High", value: "price-low" },
-                          { label: "Price: High to Low", value: "price-high" },
-                          ...(canSortByDistance
-                            ? [{ label: "Nearest", value: "nearest" as const }]
-                            : []),
-                        ] as const
-                      ).map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            setSortFallback(false);
-                            setFilters({ sort: option.value });
-                          }}
-                          className={cn(
-                            "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
-                            effectiveSort === option.value
-                              ? "bg-orange-50 font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
-                              : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-700",
-                          )}
-                        >
-                          {option.label}
-                          {effectiveSort === option.value ? (
-                            <Check className="h-4 w-4" aria-hidden="true" />
-                          ) : null}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <SortMenu
+                  value={effectiveSort}
+                  onChange={(sort) => {
+                    setSortFallback(false);
+                    setFilters({ sort });
+                  }}
+                  canSortByDistance={canSortByDistance}
+                />
               </div>
             </div>
           </RentReveal>
@@ -447,8 +462,8 @@ function RentPageContent() {
                 title="No places match these filters"
                 description="Try another destination or widen the price range."
                 action={
-                  <Button variant="outline" onClick={reset}>
-                    Clear all filters
+                  <Button variant="outline" onClick={clearSearchAndFilters}>
+                    Clear search and filters
                   </Button>
                 }
               />
@@ -465,11 +480,18 @@ function RentPageContent() {
                 )}
                 distances={distances}
                 onApartmentClick={handleApartmentClick}
+                listingSearchParams={searchParams.toString()}
               />
             )}
           </div>
         </main>
       </PageContainer>
+
+      <RentHelpPanel
+        open={helpOpen}
+        onOpenChange={setHelpOpen}
+        restoreFocusTo={restoreHelpFocus}
+      />
     </div>
   );
 }
