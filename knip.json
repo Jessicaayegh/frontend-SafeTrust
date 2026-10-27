@@ -16,7 +16,9 @@
     "src/components/listings/ActiveFilterChips.tsx",
     "src/components/listings/RentFiltersPanel.tsx",
     "src/lib/rent-filters.ts",
-    "src/providers/AppProviders.tsx"
+    "src/providers/AppProviders.tsx",
+    "src/components/rooms/index.ts",
+    "src/components/rooms/cards/index.ts"
   ],
   "ignoreIssues": {
     ".husky/**": ["binaries"]

@@ -126,6 +126,38 @@ it("Test 4 (UI): a double click on Confirm starts one deploy", async () => {
   expect(fakes.deployApi).toHaveBeenCalledTimes(1);
 });
 
+it("funds the created escrow and notifies the caller after confirmation", async () => {
+  const onFunded = jest.fn();
+  renderCheckout({ onFunded });
+
+  fireEvent.click(await openReview());
+
+  await screen.findByText("Booking confirmed");
+  expect(fakes.deployApi).toHaveBeenCalledTimes(1);
+  expect(fakes.fundApi).toHaveBeenCalledTimes(1);
+  expect(onFunded).toHaveBeenCalledTimes(1);
+  expect(onFunded).toHaveBeenCalledWith(
+    expect.objectContaining({
+      state: expect.objectContaining({ step: "funded" }),
+    }),
+  );
+});
+
+it("shows a recoverable error when funding cannot be prepared", async () => {
+  fakes.fundApi.mockRejectedValueOnce(new Error("fund unavailable"));
+  renderCheckout();
+
+  fireEvent.click(await openReview());
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Something went wrong before anything was sent. Nothing was charged.",
+  );
+  expect(fakes.deployApi).toHaveBeenCalledTimes(1);
+  expect(fakes.fundApi).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+  expect(screen.queryByText("Booking confirmed")).not.toBeInTheDocument();
+});
+
 it("shows step 1 of 2 with Cancel while the wallet prompt is open", async () => {
   const signature = deferred<string>();
   fakes.signTransaction.mockImplementationOnce(() => signature.promise);

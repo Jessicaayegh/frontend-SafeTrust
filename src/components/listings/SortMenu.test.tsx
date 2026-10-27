@@ -71,4 +71,16 @@ describe("SortMenu", () => {
 
     expect(screen.getByRole("button", { name: "Nearest" })).toBeInTheDocument();
   });
+
+  it("highlights the currently selected sort option", () => {
+    render(<SortMenu value="price-high" onChange={jest.fn()} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Sort by:\s*Price: High to Low/i }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Price: High to Low" }),
+    ).toHaveClass("bg-orange-50");
+  });
 });

@@ -12,7 +12,11 @@ export default function GuestDashboardPage() {
       <Suspense fallback={null}>
         <HotelHeader />
       </Suspense>
-      <Suspense fallback={<main className="min-h-screen bg-white px-6 py-12 dark:bg-slate-900" />}>
+      <Suspense
+        fallback={
+          <main className="min-h-screen bg-white px-6 py-12 dark:bg-slate-900" />
+        }
+      >
         <GuestDashboard />
       </Suspense>
     </div>

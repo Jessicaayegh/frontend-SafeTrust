@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { StrKey } from "@stellar/stellar-sdk";
