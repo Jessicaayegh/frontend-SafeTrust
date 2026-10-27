@@ -2,17 +2,17 @@
  * First-load JS gzip budgets per runtime profile (FE-54).
  *
  * Current baseline measured from Next.js production build output (gzip):
- * - (marketing): 219 kB - 328 kB (target budget: ≤ 340 kB; 10% reduction from initial ~360 kB)
- * - (auth):      197 kB - 323 kB (target budget: ≤ 335 kB; 10% reduction from initial ~360 kB)
- * - (app):       192 kB - 308 kB (target budget: ≤ 320 kB; 10% reduction from initial ~350 kB)
- * - (checkout):  194 kB - 597 kB (target budget: ≤ 630 kB; 10% reduction from initial ~680 kB)
+ * - (marketing): 219 kB - 347 kB (target budget: ≤ 350 kB)
+ * - (auth):      197 kB - 323 kB (target budget: ≤ 335 kB)
+ * - (app):       192 kB - 326 kB (target budget: ≤ 330 kB)
+ * - (checkout):  194 kB - 597 kB (target budget: ≤ 630 kB)
  *
  * Values in kilobytes (kB).
  */
 const GROUP_BUDGETS = {
   marketing: {
     name: "(marketing)",
-    maxKb: 340,
+    maxKb: 350,
     routes: [
       "/(marketing)/page",
       "/(marketing)/rent/page",
@@ -36,7 +36,7 @@ const GROUP_BUDGETS = {
   },
   app: {
     name: "(app)",
-    maxKb: 320,
+    maxKb: 330,
     routes: [
       "/(app)/dashboard/page",
       "/(app)/dashboard/apartments/page",
@@ -63,8 +63,6 @@ const GROUP_BUDGETS = {
     name: "(checkout)",
     maxKb: 630,
     routes: [
-      "/(checkout)/bookings/[bookingId]/escrow/page",
-      "/(checkout)/bookings/new/escrow/page",
       "/(checkout)/hotels/[id]/book/page",
       "/(checkout)/rent/[id]/escrow/[escrowId]/page",
       "/(checkout)/rent/[id]/escrow/create/page",

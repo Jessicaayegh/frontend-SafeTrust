@@ -7,13 +7,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { auth } from "@/lib/firebase";
+import { sendVerification } from "@/lib/auth/email-verification";
+import { resolveRedirectPath } from "@/lib/auth/redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { setSessionCookie } from "@/lib/auth/session";
-import { resolveRedirectPath } from "@/lib/auth/redirect";
 import Illustration from "@/components/auth/ui/Illustration";
 import {
   AuthMotion,
@@ -47,6 +48,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const safeRedirect = resolveRedirectPath(searchParams.get("redirect"));
   // Validated return path: external // and /\ targets fall back to the
   // default, exactly like the login form does.
   const redirectTo = resolveRedirectPath(
@@ -88,6 +90,14 @@ export default function RegisterPage() {
         displayName: `${firstName} ${lastName}`.trim(),
       });
 
+      // Firebase hosts the verification link; a failure here must not fail
+      // registration — /verify-email offers "Resend email".
+      try {
+        await sendVerification(credential.user, safeRedirect);
+      } catch {
+        /* the verify page offers Resend */
+      }
+
       const token = await credential.user.getIdToken();
 
       // Step 2 — sync user to backend-SafeTrust (non-blocking)
@@ -119,13 +129,11 @@ export default function RegisterPage() {
       setSessionCookie(token);
 
       toast.success("Account created successfully!", {
-        description: "Please sign in with your new credentials.",
+        description: "Please verify your email to continue.",
         duration: 4000,
       });
 
-      // Keep the return path so the login after sign-up lands on the page
-      // the user originally asked for.
-      router.push(`/login${keep}`);
+      router.push(`/verify-email?redirect=${encodeURIComponent(safeRedirect)}`);
     } catch (err: unknown) {
       if (err instanceof FirebaseError) {
         toast.error(
@@ -236,11 +244,7 @@ export default function RegisterPage() {
                     className="flex h-9 w-full sm:w-32 items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900"
                   >
                     {COUNTRY_CODES.map(({ code, country, flag }) => (
-                      <option
-                        key={code}
-                        value={code}
-                        className="dark:bg-gray-900 text-foreground"
-                      >
+                      <option key={code} value={code} className="dark:bg-gray-900 text-foreground">
                         {flag} {code} — {country}
                       </option>
                     ))}
@@ -277,37 +281,13 @@ export default function RegisterPage() {
                   }}
                   className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900"
                 >
-                  <option
-                    value=""
-                    disabled
-                    className="dark:bg-gray-900 text-foreground"
-                  >
+                  <option value="" disabled className="dark:bg-gray-900 text-foreground">
                     Select your location
                   </option>
-                  <option
-                    value="cr"
-                    className="dark:bg-gray-900 text-foreground"
-                  >
-                    Costa Rica
-                  </option>
-                  <option
-                    value="us"
-                    className="dark:bg-gray-900 text-foreground"
-                  >
-                    United States
-                  </option>
-                  <option
-                    value="mx"
-                    className="dark:bg-gray-900 text-foreground"
-                  >
-                    Mexico
-                  </option>
-                  <option
-                    value="es"
-                    className="dark:bg-gray-900 text-foreground"
-                  >
-                    Spain
-                  </option>
+                  <option value="cr" className="dark:bg-gray-900 text-foreground">Costa Rica</option>
+                  <option value="us" className="dark:bg-gray-900 text-foreground">United States</option>
+                  <option value="mx" className="dark:bg-gray-900 text-foreground">Mexico</option>
+                  <option value="es" className="dark:bg-gray-900 text-foreground">Spain</option>
                 </select>
               </AuthMotionItem>
 

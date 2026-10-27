@@ -1,13 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Shield, Phone, Star } from "lucide-react";
 import FavoriteButton from "./FavoriteButton";
 import ShareButton from "./ShareButton";
 import ContactButton from "./ContactButton";
-import ReportButton from "./ReportButton";
+
+const ReportButton = dynamic(() => import("./ReportButton"));
 
 interface RoomActionBarProps {
+  listingId: string;
+  listingName: string;
   isLiked?: boolean;
   onShare?: () => void;
   onLike?: () => void;
@@ -18,6 +22,8 @@ interface RoomActionBarProps {
 }
 
 const RoomActionBar = ({
+  listingId,
+  listingName,
   isLiked = false,
   onShare,
   onLike,
@@ -77,7 +83,7 @@ const RoomActionBar = ({
             </div>
           </div>
 
-          <ReportButton />
+          <ReportButton listingId={listingId} listingName={listingName} />
         </div>
       )}
 

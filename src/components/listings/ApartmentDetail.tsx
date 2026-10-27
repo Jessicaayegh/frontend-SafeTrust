@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ApartmentListing } from "@/types/hotel";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +15,10 @@ import {
   BookingSummaryBar,
   type BookingIntent,
 } from "@/features/listings/detail/BookingSummaryBar";
+
+const ReportButton = dynamic(
+  () => import("@/components/rooms/actions/ReportButton"),
+);
 
 interface ApartmentDetailProps {
   apartment: ApartmentListing;
@@ -122,6 +127,12 @@ export default function ApartmentDetail({
               width={34}
               height={34}
               className="h-9 w-9 rounded-full object-cover"
+            />
+          </div>
+          <div className="mt-3 flex justify-end">
+            <ReportButton
+              listingId={apartment.id}
+              listingName={apartment.name}
             />
           </div>
         </div>

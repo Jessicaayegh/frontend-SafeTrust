@@ -52,7 +52,7 @@ describe("RoomPage actions", () => {
     render(<RoomPage />);
 
     fireEvent.click(
-      screen.getAllByRole("button", { name: /contact host/i })[0],
+      (await screen.findAllByRole("button", { name: /contact host/i }))[0],
     );
 
     expect(push).toHaveBeenCalledWith("/login?redirect=%2Froom");
@@ -64,7 +64,9 @@ describe("RoomPage actions", () => {
     mockUser = { uid: "u1" };
     render(<RoomPage />);
 
-    const buttons = screen.getAllByRole("button", { name: /contact host/i });
+    const buttons = await screen.findAllByRole("button", {
+      name: /contact host/i,
+    });
     fireEvent.click(buttons[0]);
     expect(push).toHaveBeenLastCalledWith(MESSAGES);
     fireEvent.click(buttons[buttons.length - 1]);
@@ -75,7 +77,7 @@ describe("RoomPage actions", () => {
     mockLoading = true;
     render(<RoomPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: /contact host/i })[0],
+      (await screen.findAllByRole("button", { name: /contact host/i }))[0],
     );
     expect(push).not.toHaveBeenCalled();
   });
@@ -95,7 +97,9 @@ describe("RoomPage actions", () => {
       });
       render(<RoomPage />);
 
-      const trigger = screen.getAllByRole("button", { name: "View on Map" })[1];
+      const trigger = (
+        await screen.findAllByRole("button", { name: "View on Map" })
+      )[1];
       fireEvent.click(trigger);
       expect(await screen.findByRole("dialog")).toBeInTheDocument();
       expect(await screen.findByTestId("map")).toBeInTheDocument();
@@ -103,14 +107,14 @@ describe("RoomPage actions", () => {
     });
   });
 
-  it("disables Get Directions when the listing coordinates are invalid", () => {
+  it("disables Get Directions when the listing coordinates are invalid", async () => {
     const listing = getApartmentById("1");
     const original = listing.coordinates;
     listing.coordinates = { lat: Number.NaN, lng: 0 };
     try {
       render(<RoomPage />);
       expect(
-        screen.getByRole("button", { name: /get directions/i }),
+        await screen.findByRole("button", { name: /get directions/i }),
       ).toBeDisabled();
     } finally {
       listing.coordinates = original;
@@ -121,7 +125,9 @@ describe("RoomPage actions", () => {
     const open = jest.spyOn(window, "open").mockImplementation(() => null);
     render(<RoomPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Get Directions/ }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Get Directions/ }),
+    );
 
     expect(open).toHaveBeenCalledWith(
       expect.stringMatching(

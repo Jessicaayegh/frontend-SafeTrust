@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Flame, Heart, MessageCircle } from "lucide-react";
 import AmenityIcons from "./AmenityIcons";
 import { ListingPrice } from "./ListingPrice";
+import { listingHref } from "@/features/listings/search/links";
 
 interface ApartmentCardProps {
   apartment: ApartmentListing;
@@ -16,6 +17,7 @@ interface ApartmentCardProps {
   loading?: "eager" | "lazy";
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
+  listingSearchParams?: string;
 }
 
 /** Render a rental card with booking and host-contact actions. */
@@ -25,8 +27,15 @@ export default function ApartmentCard({
   loading = "lazy",
   isFavorite = false,
   onToggleFavorite,
+  listingSearchParams,
 }: ApartmentCardProps) {
   const router = useRouter();
+  const currentSearch = new URLSearchParams(listingSearchParams ?? "");
+  const detailHref = listingHref(`/rent/${apartment.id}`, currentSearch);
+  const bookingHref = listingHref(
+    `/rent/${apartment.id}/escrow/create`,
+    currentSearch,
+  );
 
   return (
     <article
@@ -39,7 +48,7 @@ export default function ApartmentCard({
           e.target === e.currentTarget
         ) {
           e.preventDefault();
-          router.push(`/rent/${apartment.id}`);
+          router.push(detailHref);
         }
       }}
       className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[16px] border dark:border-slate-700 bg-white dark:bg-slate-800 transition-shadow motion-safe:hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] focus-within:ring-2 focus-within:ring-ring focus:outline-none focus:ring-2 focus:ring-ring"
@@ -108,7 +117,7 @@ export default function ApartmentCard({
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-base font-semibold text-gray-900 dark:text-white">
               <Link
-                href={`/rent/${apartment.id}`}
+                href={detailHref}
                 className="after:absolute after:inset-0 focus-visible:outline-none"
               >
                 {apartment.name}
@@ -147,7 +156,7 @@ export default function ApartmentCard({
           asChild
           className="relative z-10 mt-auto w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
         >
-          <Link href={`/rent/${apartment.id}/escrow/create`}>Book</Link>
+          <Link href={bookingHref}>Book</Link>
         </Button>
         <Button
           asChild

@@ -6,10 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AccountOverviewTable } from "./AccountOverviewTable";
+import { listWallets } from "@/features/account/wallets";
 import { AvatarUpload } from "./AvatarUpload";
+
+const AccountOverviewTable = dynamic(() =>
+  import("./AccountOverviewTable").then(
+    (module) => module.AccountOverviewTable,
+  ),
+);
 
 interface ProfileFormData {
   firstName: string;
@@ -23,7 +30,7 @@ interface ProfileFormData {
 
 interface AccountData {
   createdAt: string;
-  walletAddress: string;
+  walletAddress: string | null;
   email: string;
 }
 
@@ -50,7 +57,7 @@ export function EditProfileForm() {
   const [form, setForm] = useState<ProfileFormData>(EMPTY_FORM);
   const [account, setAccount] = useState<AccountData>({
     createdAt: "—",
-    walletAddress: "—",
+    walletAddress: "No wallet linked",
     email: "—",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -74,9 +81,26 @@ export function EditProfileForm() {
           createdAt: user.metadata.creationTime
             ? new Date(user.metadata.creationTime).toLocaleDateString("en-GB")
             : "—",
-          walletAddress: "—", // TODO: read from Hasura → public.users.wallet_address
+          walletAddress: "No wallet linked",
           email: user.email ?? "—",
         });
+        void user
+          .getIdToken()
+          .then(listWallets)
+          .then(
+            ({ wallets }) => {
+              const primaryWallet = wallets.find((wallet) => wallet.isPrimary);
+              setAccount((current) => ({
+                ...current,
+                walletAddress: primaryWallet?.address ?? "No wallet linked",
+              }));
+            },
+            (error: unknown) => {
+              console.error("Failed to load linked wallet:", error);
+              setAccount((current) => ({ ...current, walletAddress: null }));
+              toast.error("Couldn't load your primary wallet.");
+            },
+          );
       }
       setIsInitializing(false);
     });
@@ -208,11 +232,7 @@ export function EditProfileForm() {
                 className="h-9 w-28 shrink-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800"
               >
                 {COUNTRY_CODES.map(({ code, flag, label }) => (
-                  <option
-                    key={code}
-                    value={code}
-                    className="dark:bg-gray-900 text-foreground"
-                  >
+                  <option key={code} value={code} className="dark:bg-gray-900 text-foreground">
                     {flag} {label}
                   </option>
                 ))}

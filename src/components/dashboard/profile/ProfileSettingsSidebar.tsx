@@ -5,7 +5,7 @@ import {
   navItemClass,
 } from "@/components/layouts/nav-item-styles";
 import { cn } from "@/lib/utils";
-import { Home, User, Users, type LucideIcon } from "lucide-react";
+import { Home, Shield, User, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -22,7 +22,14 @@ type SidebarLink = {
 const SIDEBAR_LINKS: { section: string; items: SidebarLink[] }[] = [
   {
     section: "General",
-    items: [{ label: "Account", href: "/dashboard/profile", icon: User }],
+    items: [
+      { label: "Account", href: "/dashboard/profile", icon: User },
+      {
+        label: "Security",
+        href: "/dashboard/profile/security",
+        icon: Shield,
+      },
+    ],
   },
   {
     section: "Other",

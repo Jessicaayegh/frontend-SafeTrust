@@ -4,16 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useRef, useState } from "react";
 import nextDynamic from "next/dynamic";
-import RoomPhotos from "@/components/rooms/gallery/RoomPhotos";
-import AdditionalRoomPhotos from "@/components/rooms/gallery/AdditionalRoomPhotos";
 import RoomDetailsCard from "@/components/rooms/cards/RoomDetailsCard";
-import RoomActionBar from "@/components/rooms/actions/RoomActionBar";
-import MobileBookingCard from "@/components/rooms/booking/MobileBookingCard";
-import { BookingConfirmation } from "@/components/rooms/booking/BookingConfirmation";
-import AmenitiesCard from "@/components/rooms/cards/AmenitiesCard";
-import LocationCard from "@/components/rooms/cards/LocationCard";
-import HostCard from "@/components/rooms/cards/HostCard";
-import PolicyCard from "@/components/rooms/cards/PolicyCard";
 import { usePathname, useRouter } from "next/navigation";
 import { parseISO } from "date-fns";
 import { NavigationHeader } from "@/components/navigation/NavigationHeader";
@@ -38,6 +29,36 @@ const RoomBookingPanel = nextDynamic(
       />
     ),
   },
+);
+
+const RoomPhotos = nextDynamic(
+  () => import("@/components/rooms/gallery/RoomPhotos"),
+);
+const AdditionalRoomPhotos = nextDynamic(
+  () => import("@/components/rooms/gallery/AdditionalRoomPhotos"),
+);
+const RoomActionBar = nextDynamic(
+  () => import("@/components/rooms/actions/RoomActionBar"),
+);
+const MobileBookingCard = nextDynamic(() =>
+  import("@/components/rooms/booking/MobileBookingCard"),
+);
+const BookingConfirmation = nextDynamic(() =>
+  import("@/components/rooms/booking/BookingConfirmation").then(
+    (module) => module.BookingConfirmation,
+  ),
+);
+const AmenitiesCard = nextDynamic(() =>
+  import("@/components/rooms/cards/AmenitiesCard"),
+);
+const LocationCard = nextDynamic(() =>
+  import("@/components/rooms/cards/LocationCard"),
+);
+const HostCard = nextDynamic(() =>
+  import("@/components/rooms/cards/HostCard"),
+);
+const PolicyCard = nextDynamic(() =>
+  import("@/components/rooms/cards/PolicyCard"),
 );
 
 const roomListing = getApartmentById("1");
@@ -152,6 +173,8 @@ export default function RoomPage() {
           <RoomDetailsCard hotelName={listing.name} isLoading={isLoading} />
           {/* Action Bar */}
           <RoomActionBar
+            listingId={hotelId}
+            listingName={listing.name}
             isLiked={isLiked}
             onLike={handleLike}
             onContact={contactHost}
